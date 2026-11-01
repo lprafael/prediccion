@@ -53,12 +53,29 @@ def _env_list(name: str, default: str) -> List[str]:
 
 
 def _devig(prices: List[float]) -> Optional[List[float]]:
-    """Convierte cuotas decimales en probabilidades sin margen (metodo proporcional)."""
+    """Convierte cuotas decimales en probabilidades sin margen.
+
+    Metodo por defecto: "power" (p_i = (1/cuota_i)^k, con k tal que la suma da 1).
+    A diferencia del metodo proporcional, no infla la probabilidad de los equipos
+    muy poco favoritos (sesgo favorito-longshot). DEVIG_METODO=proporcional
+    vuelve al metodo anterior.
+    """
     if not prices or any((p is None or p <= 1.0) for p in prices):
         return None
     inv = [1.0 / p for p in prices]
     total = sum(inv)
-    return [x / total for x in inv]
+    if os.getenv("DEVIG_METODO", "power").lower().startswith("prop") or total <= 1.0:
+        return [x / total for x in inv]
+    lo, hi = 1.0, 3.0
+    for _ in range(60):
+        k = (lo + hi) / 2
+        if sum(x ** k for x in inv) > 1.0:
+            lo = k
+        else:
+            hi = k
+    probs = [x ** ((lo + hi) / 2) for x in inv]
+    s = sum(probs)
+    return [x / s for x in probs]
 
 
 # ─── 1. The Odds API ──────────────────────────────────────────────────────────
