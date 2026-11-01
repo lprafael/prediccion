@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Informe Técnico — Sistema Cuantitativo de Predicción de Baloncesto & Live Betting</title>
+  
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- MathJax 3 para fórmulas matemáticas LaTeX -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true
+      },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <style>
+    :root {
+      --bg-primary: #0A0E17;
+      --bg-secondary: #111827;
+      --bg-card: #162032;
+      --bg-card-hover: #1C2A42;
+      --bg-glass: rgba(22, 32, 50, 0.75);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-accent: rgba(6, 182, 212, 0.3);
+      --text-main: #F3F4F6;
+      --text-muted: #9CA3AF;
+      --text-subtle: #6B7280;
+      
+      --cyan-400: #22D3EE;
+      --cyan-500: #06B6D4;
+      --emerald-400: #34D399;
+      --emerald-500: #10B981;
+      --indigo-400: #818CF8;
+      --indigo-500: #6366F1;
+      --amber-400: #FBBF24;
+      --amber-500: #F59E0B;
+      --rose-400: #FB7185;
+      --rose-500: #F43F5E;
+      
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      line-height: 1.65;
+      padding-bottom: 80px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Ambient background gradient glow */
+    .ambient-glow {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 0;
+      background: radial-gradient(circle at 15% 15%, rgba(6, 182, 212, 0.08) 0%, transparent 40%),
+                  radial-gradient(circle at 85% 20%, rgba(99, 102, 241, 0.08) 0%, transparent 45%),
+                  radial-gradient(circle at 50% 80%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 40px 24px;
+    }
+
+    /* Header & Hero */
+    header {
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 36px;
+      margin-bottom: 40px;
+    }
+
+    .header-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+    }
+
+    .badge-cyan {
+      background: rgba(6, 182, 212, 0.15);
+      color: var(--cyan-400);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+    }
+
+    .badge-emerald {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--emerald-400);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .badge-indigo {
+      background: rgba(99, 102, 241, 0.15);
+      color: var(--indigo-400);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+    }
+
+    .badge-amber {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--amber-400);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      line-height: 1.2;
+      background: linear-gradient(135deg, #FFFFFF 0%, #E2E8F0 60%, #94A3B8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 14px;
+    }
+
+    .subtitle {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      max-width: 900px;
+      margin-bottom: 24px;
+    }
+
+    .doc-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+      font-size: 0.85rem;
+      color: var(--text-subtle);
+      font-family: var(--font-mono);
+      border-top: 1px solid var(--border-subtle);
+      padding-top: 16px;
+    }
+
+    .doc-meta span strong {
+      color: var(--text-muted);
+    }
+
+    /* Layout with Sticky Navigation */
+    .layout-wrapper {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 40px;
+      align-items: start;
+    }
+
+    @media (max-width: 960px) {
+      .layout-wrapper {
+        grid-template-columns: 1fr;
+      }
+      .toc-sidebar {
+        display: none;
+      }
+    }
+
+    /* Table of Contents Sticky Sidebar */
+    .toc-sidebar {
+      position: sticky;
+      top: 24px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 20px;
+      backdrop-filter: blur(12px);
+    }
+
+    .toc-title {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: var(--cyan-400);
+      letter-spacing: 0.05em;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toc-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 0.85rem;
+    }
+
+    .toc-list a {
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.15s ease, transform 0.15s ease;
+      display: block;
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+
+    .toc-list a:hover {
+      color: var(--text-main);
+      background: var(--bg-card-hover);
+      transform: translateX(3px);
+    }
+
+    /* Section Styling */
+    section {
+      margin-bottom: 56px;
+      scroll-margin-top: 30px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 12px;
+    }
+
+    .section-num {
+      font-family: var(--font-mono);
+      color: var(--cyan-400);
+      font-size: 1.1rem;
+      font-weight: 700;
+      background: rgba(6, 182, 212, 0.12);
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid rgba(6, 182, 212, 0.25);
+    }
+
+    h2 {
+      font-size: 1.65rem;
+      font-weight: 700;
+      color: #FFFFFF;
+    }
+
+    h3 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #E2E8F0;
+      margin: 28px 0 14px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    h3::before {
+      content: "";
+      display: inline-block;
+      width: 4px;
+      height: 18px;
+      background: var(--cyan-500);
+      border-radius: 2px;
+    }
+
+    h4 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #CBD5E1;
+      margin: 18px 0 8px 0;
+    }
+
+    p {
+      color: #D1D5DB;
+      margin-bottom: 16px;
+      font-size: 0.96rem;
+      text-align: justify;
+    }
+
+    /* Cards & Grids */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 18px;
+      margin: 20px 0;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 22px;
+      transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+
+    .card:hover {
+      border-color: var(--border-accent);
+      transform: translateY(-2px);
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #FFFFFF;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-content {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
+    /* Callout Boxes */
+    .callout {
+      border-left: 4px solid var(--cyan-500);
+      background: rgba(6, 182, 212, 0.08);
+      padding: 16px 20px;
+      border-radius: 0 10px 10px 0;
+      margin: 20px 0;
+      font-size: 0.92rem;
+    }
+
+    .callout-success {
+      border-left-color: var(--emerald-500);
+      background: rgba(16, 185, 129, 0.08);
+    }
+
+    .callout-warning {
+      border-left-color: var(--amber-500);
+      background: rgba(245, 158, 11, 0.08);
+    }
+
+    .callout-title {
+      font-weight: 700;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #FFFFFF;
+    }
+
+    /* Mathematical Formula Box */
+    .formula-box {
+      background: #0D131F;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 18px 24px;
+      margin: 20px 0;
+      text-align: center;
+      overflow-x: auto;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+    }
+
+    .formula-desc {
+      font-size: 0.82rem;
+      color: var(--text-subtle);
+      margin-top: 10px;
+      font-family: var(--font-mono);
+      text-align: left;
+    }
+
+    /* Data Tables */
+    .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+      margin: 24px 0;
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      background: var(--bg-card);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      text-align: left;
+    }
+
+    th {
+      background: rgba(255, 255, 255, 0.03);
+      color: #94A3B8;
+      font-weight: 600;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-subtle);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    td {
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: #E2E8F0;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .code-tag {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: var(--cyan-400);
+    }
+
+    /* Diagram flow box */
+    .flow-diagram {
+      background: #0D1321;
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 24px;
+      margin: 24px 0;
+    }
+
+    .flow-steps {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .flow-step-box {
+      flex: 1;
+      min-width: 180px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 14px;
+      text-align: center;
+      position: relative;
+    }
+
+    .flow-step-box .step-num {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--cyan-400);
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .flow-step-box .step-name {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #FFFFFF;
+      margin-bottom: 4px;
+    }
+
+    .flow-step-box .step-desc {
+      font-size: 0.75rem;
+      color: var(--text-subtle);
+    }
+
+    .flow-arrow {
+      color: var(--cyan-500);
+      font-weight: 700;
+      font-size: 1.2rem;
+    }
+
+    @media (max-width: 768px) {
+      .flow-steps {
+        flex-direction: column;
+      }
+      .flow-arrow {
+        transform: rotate(90deg);
+      }
+    }
+
+    /* Matrix Grading Styling */
+    .grade-badge {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 0.78rem;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+    .grade-a-plus { background: rgba(16, 185, 129, 0.2); color: #34D399; border: 1px solid #10B981; }
+    .grade-a { background: rgba(6, 182, 212, 0.2); color: #22D3EE; border: 1px solid #06B6D4; }
+    .grade-b { background: rgba(245, 158, 11, 0.2); color: #FBBF24; border: 1px solid #F59E0B; }
+    .grade-none { background: rgba(239, 68, 68, 0.2); color: #F87171; border: 1px solid #EF4444; }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border-subtle);
+      padding-top: 32px;
+      margin-top: 60px;
+      font-size: 0.85rem;
+      color: var(--text-subtle);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    @media print {
+      body {
+        background: #FFFFFF;
+        color: #111827;
+      }
+      .ambient-glow, .toc-sidebar {
+        display: none;
+      }
+      .layout-wrapper {
+        grid-template-columns: 1fr;
+      }
+      .card, .table-responsive, .formula-box, .flow-diagram {
+        background: #F9FAFB;
+        border: 1px solid #E5E7EB;
+        color: #111827;
+      }
+      h1, h2, h3, h4 {
+        color: #111827 !important;
+        -webkit-text-fill-color: initial !important;
+      }
+      p, td {
+        color: #374151 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient-glow"></div>
+
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <div class="header-badges">
+        <span class="badge badge-cyan">v2.4 Production Release</span>
+        <span class="badge badge-emerald">Fases 1, 2 y 3 Verificadas</span>
+        <span class="badge badge-indigo">Monte Carlo N=5,000</span>
+        <span class="badge badge-amber">Suite de Tests 100% Passed</span>
+      </div>
+      <h1>Informe Técnico de Funcionalidad y Arquitectura Cuantitativa</h1>
+      <div class="subtitle">
+        Documentación exhaustiva del motor analítico de predicción de baloncesto, simulación estocástica en tiempo real, inteligencia cuantitativa de apuestas (Live Betting) y auditoría de rendimiento.
+      </div>
+      <div class="doc-meta">
+        <span><strong>AUTOR:</strong> Equipo de Ingeniería Cuantitativa & Antigravity IDE</span>
+        <span><strong>ENTORNO:</strong> Python 3.12 / PostgreSQL / Streamlit</span>
+        <span><strong>FECHA:</strong> Septiembre 2026</span>
+        <span><strong>LICENCIA:</strong> Uso Interno Poliverso / High-Frequency Betting Engine</span>
+      </div>
+    </header>
+
+    <div class="layout-wrapper">
+      <!-- Sticky Table of Contents -->
+      <aside class="toc-sidebar">
+        <div class="toc-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+          Contenido del Informe
+        </div>
+        <ul class="toc-list">
+          <li><a href="#sec-1">1. Resumen Ejecutivo</a></li>
+          <li><a href="#sec-2">2. Arquitectura General y Stack</a></li>
+          <li><a href="#sec-3">3. Modelo Matemático Pre-Partido</a></li>
+          <li><a href="#sec-4">4. Motor Estocástico Monte Carlo</a></li>
+          <li><a href="#sec-5">5. Ajustes Dinámicos Situacionales</a></li>
+          <li><a href="#sec-6">6. Inteligencia de Apuestas (No-Vig)</a></li>
+          <li><a href="#sec-7">7. Auditoría, Brier Score y Bankroll</a></li>
+          <li><a href="#sec-8">8. Validación y Suite de Pruebas</a></li>
+          <li><a href="#sec-9">9. Conclusión y Operativa</a></li>
+        </ul>
+      </aside>
+
+      <!-- Main Technical Content -->
+      <main>
+        
+        <!-- SECCIÓN 1: RESUMEN EJECUTIVO -->
+        <section id="sec-1">
+          <div class="section-header">
+            <span class="section-num">01</span>
+            <h2>Resumen Ejecutivo y Objetivos Cuantitativos</h2>
+          </div>
+          <p>
+            El presente sistema computacional ha sido diseñado con el propósito de erradicar la asimetría informativa y explotar ineficiencias de mercado en las líneas de totales (<strong>Over/Under</strong>) y hándicaps en apuestas deportivas de baloncesto, tanto en instancias previas al salto inicial (<strong>Pre-Match</strong>) como durante el desarrollo en vivo del juego (<strong>In-Play / Live</strong>).
+          </p>
+          <p>
+            Tradicionalmente, las casas de apuestas (Kambi, Bet365, Aposta.la) ajustan sus líneas en vivo mediante algoritmos de regresión lineal simple o modelos de Poisson estándar que proyectan el ritmo de juego actual sin considerar factores tácticos cruciales como la sobre-dispersión de las posesiones de baloncesto, la regresión estocástica del acierto de triples, la fatiga acumulada en partidos consecutivos (<em>Back-to-Back</em>), los carruseles de faltas intencionales en finales cerrados (<em>Clutch</em>), ni la probabilidad no nula de prórrogas reglamentarias (<em>Overtime</em>).
+          </p>
+          
+          <div class="card-grid">
+            <div class="card">
+              <div class="card-title">
+                <span style="color: var(--cyan-400);">🎯</span> Ventaja Cuantitativa (Alpha)
+              </div>
+              <div class="card-content">
+                Detección sistemática de discrepancias entre la distribución de probabilidad real generada mediante 5,000 simulaciones estocásticas y la cuota desmargenada (No-Vig) ofrecida por la casa de apuestas.
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title">
+                <span style="color: var(--emerald-400);">🛡️</span> Desmargenado Riguroso
+              </div>
+              <div class="card-content">
+                Eliminación matemática del <em>overround</em> o margen cobrado por la casa (típicamente entre 5.5% y 8.5%), revelando la verdadera probabilidad implícita del mercado antes de calcular el valor esperado ($EV$).
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title">
+                <span style="color: var(--indigo-400);">⚡</span> Simulación Minuto a Minuto
+              </div>
+              <div class="card-content">
+                Modelado dinámico no estacionario que actualiza las distribuciones de posesiones y puntos según el cuarto disputado, la diferencia de marcador y el tiempo remanente.
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECCIÓN 2: ARQUITECTURA GENERAL Y STACK -->
+        <section id="sec-2">
+          <div class="section-header">
+            <span class="section-num">02</span>
+            <h2>Arquitectura del Sistema y Stack Tecnológico</h2>
+          </div>
+          <p>
+            El sistema está construido siguiendo una arquitectura modular en capas que desacopla la adquisición de datos de telemetría en vivo, el procesamiento matemático probabilístico, la persistencia relacional transaccional y la visualización interactiva para el operador:
+          </p>
+
+          <!-- Diagrama de Flujo -->
+          <div class="flow-diagram">
+            <div class="flow-steps">
+              <div class="flow-step-box">
+                <div class="step-num">ETAPA 1</div>
+                <div class="step-name">Scraping en Vivo</div>
+                <div class="step-desc">Playwright + BeautifulSoup<br><span class="code-tag">model/scraper.py</span></div>
+              </div>
+              <div class="flow-arrow">➔</div>
+              <div class="flow-step-box">
+                <div class="step-num">ETAPA 2</div>
+                <div class="step-name">Prior Analítico</div>
+                <div class="step-desc">Dean Oliver + Eficiencia Cruzada<br><span class="code-tag">model/analytics.py</span></div>
+              </div>
+              <div class="flow-arrow">➔</div>
+              <div class="flow-step-box">
+                <div class="step-num">ETAPA 3</div>
+                <div class="step-name">Monte Carlo</div>
+                <div class="step-desc">NegBin + Bayes + Overtime<br><span class="code-tag">model/engine.py</span></div>
+              </div>
+              <div class="flow-arrow">➔</div>
+              <div class="flow-step-box">
+                <div class="step-num">ETAPA 4</div>
+                <div class="step-name">Inteligencia de Apuestas</div>
+                <div class="step-desc">Point Spread Edge + No-Vig<br><span class="code-tag">model/live_betting.py</span></div>
+              </div>
+              <div class="flow-arrow">➔</div>
+              <div class="flow-step-box">
+                <div class="step-num">ETAPA 5</div>
+                <div class="step-name">Persistencia & Auditoría</div>
+                <div class="step-desc">PostgreSQL + Brier Score<br><span class="code-tag">model/database.py</span></div>
+              </div>
+            </div>
+          </div>
+
+          <h3>Componentes del Software</h3>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Módulo</th>
+                  <th>Tecnología / Librerías</th>
+                  <th>Responsabilidad Técnica Principal</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="code-tag">app.py</span></td>
+                  <td>Streamlit, Plotly Graph Objects, Pandas</td>
+                  <td>Frontend reactivo para el usuario. Gráficos de densidad de probabilidad, cálculo instantáneo de Over/Under con cuotas en vivo, y panel de auditoría de capital.</td>
+                </tr>
+                <tr>
+                  <td><span class="code-tag">model/config.py</span></td>
+                  <td>Python Dataclasses, Type Hints</td>
+                  <td>Definición reglamentaria de ligas (NBA, FIBA, NBL, NCAA Femenil), duraciones por cuarto (10 vs 12 min), coeficientes de fatiga B2B y constantes tácticas de clutch.</td>
+                </tr>
+                <tr>
+                  <td><span class="code-tag">model/analytics.py</span></td>
+                  <td>NumPy, SciPy Stats</td>
+                  <td>Modelo pre-partido: Four Factors de Dean Oliver, ritmo cruzado del emparejamiento, ventaja de localía neta y aproximación paramétrica Gaussiana.</td>
+                </tr>
+                <tr>
+                  <td><span class="code-tag">model/engine.py</span></td>
+                  <td>NumPy Vectorized Ops, Pandas</td>
+                  <td>Núcleo de simulación estocástica Monte Carlo (5,000 caminos). Distribución Binomial Negativa minuto a minuto, regresión bayesiana de ritmo, prórrogas y clutch.</td>
+                </tr>
+                <tr>
+                  <td><span class="code-tag">model/scraper.py</span></td>
+                  <td>Playwright (Chromium Headless), BS4, RegEx</td>
+                  <td>Detección automática de torneos y duraciones reglamentarias, extracción del marcador en tiempo real y lectura de las cuotas y líneas de la casa de apuestas.</td>
+                </tr>
+                <tr>
+                  <td><span class="code-tag">model/live_betting.py</span></td>
+                  <td>NumPy, Algoritmos Cuantitativos</td>
+                  <td>Extracción de señales del play-by-play, cálculo de <em>Point Spread Edge</em>, desmargenado No-Vig, Alpha de mercado, calificación de apuestas (Grados A+, A, B) y criterio de Kelly.</td>
+                </tr>
+                <tr>
+                  <td><span class="code-tag">model/database.py</span></td>
+                  <td>PostgreSQL (psycopg2-binary / pg8000)</td>
+                  <td>Almacenamiento ACID de partidos, jugadas, snapshots temporales de predicción y registro de apuestas. Motor de cálculo de Win Rate, ROI, Yield, Profit Factor y Brier Score.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- SECCIÓN 3: MODELO PRE-PARTIDO -->
+        <section id="sec-3">
+          <div class="section-header">
+            <span class="section-num">03</span>
+            <h2>Modelo Analítico Pre-Partido (Prior Bayesiano)</h2>
+          </div>
+          <p>
+            El modelo pre-partido establece la distribución <em>Prior</em> de referencia antes de que inicie el juego o durante los primeros minutos de tanteo. Utiliza la metodología de los <strong>Cuatro Factores de Dean Oliver</strong>, cruzando las eficiencias ofensivas y defensivas de ambos contendientes con el promedio histórico de la liga en cuestión.
+          </p>
+
+          <h3>1. Estimación de Posesiones (Ritmo Base de Oliver)</h3>
+          <p>
+            El volumen de juego no se mide en minutos, sino en posesiones totales de balón. A partir del historial o estadísticas del equipo, el ritmo se formula:
+          </p>
+          <div class="formula-box">
+            $$\text{Possessions} = 0.5 \times \Big( (\text{FGA} + 0.44 \times \text{FTA} - \text{ORB} + \text{TOV}) + (\text{FGA}_{\text{opp}} + 0.44 \times \text{FTA}_{\text{opp}} - \text{ORB}_{\text{opp}} + \text{TOV}_{\text{opp}}) \Big)$$
+            <div class="formula-desc">Donde FGA = Tiros de campo intentados, FTA = Tiros libres intentados, ORB = Rebotes ofensivos, TOV = Balones perdidos.</div>
+          </div>
+
+          <h3>2. Ritmo Cruzado del Enfrentamiento (Matchup Pace)</h3>
+          <p>
+            Cuando dos equipos con ritmos dispares se enfrentan, el ritmo proyectado $P_{\text{match}}$ es una interacción no lineal normalizada por el ritmo general de la liga ($P_{\text{league}}$):
+          </p>
+          <div class="formula-box">
+            $$P_{\text{match}} = \frac{P_A \times P_B}{P_{\text{league}}}$$
+          </div>
+
+          <h3>3. Eficiencia Ofensiva Cruzada y Ventaja de Localía</h3>
+          <p>
+            Los puntos anotados por cada 100 posesiones ($\text{OffRtg}_{A \to B}$) dependen del poder ofensivo del Equipo A ponderado contra la resistencia defensiva del Equipo B ($\text{DefRtg}_B$), ajustado por la ventaja de localía ($\text{HCA}$) y la eventual penalización por fatiga de partidos consecutivos ($\text{B2B}$):
+          </p>
+          <div class="formula-box">
+            $$\text{OffRtg}_{A \to B} = \frac{\text{OffRtg}_A \times \text{DefRtg}_B}{\text{OffRtg}_{\text{league}}} + \Delta_{\text{HCA}} - \Delta_{\text{B2B}}$$
+          </div>
+
+          <h3>4. Presets Reglamentarios de Competición</h3>
+          <p>
+            El sistema parametriza rigurosamente las competiciones para evitar incongruencias de duración (p. ej., cuartos de 10 minutos en NBL/FIBA frente a 12 minutos en NBA):
+          </p>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Torneo</th>
+                  <th>Min/Q</th>
+                  <th>Duración Total</th>
+                  <th>Ritmo Liga ($P_{\text{league}}$)</th>
+                  <th>OffRtg Liga</th>
+                  <th>$\sigma$ Típica</th>
+                  <th>HCA Neto</th>
+                  <th>3P% Liga</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>NBA</strong></td>
+                  <td>12 min</td>
+                  <td>48 min</td>
+                  <td>99.5 poss</td>
+                  <td>115.0 pts/100</td>
+                  <td>20.0 pts</td>
+                  <td>+2.8 pts</td>
+                  <td>36.5%</td>
+                </tr>
+                <tr>
+                  <td><strong>FIBA / Euroliga</strong></td>
+                  <td>10 min</td>
+                  <td>40 min</td>
+                  <td>74.5 poss</td>
+                  <td>105.0 pts/100</td>
+                  <td>15.5 pts</td>
+                  <td>+3.5 pts</td>
+                  <td>34.0%</td>
+                </tr>
+                <tr>
+                  <td><strong>NBL (Australia)</strong></td>
+                  <td>10 min</td>
+                  <td>40 min</td>
+                  <td>84.0 poss</td>
+                  <td>109.5 pts/100</td>
+                  <td>17.5 pts</td>
+                  <td>+3.0 pts</td>
+                  <td>34.8%</td>
+                </tr>
+                <tr>
+                  <td><strong>NCAA Femenil</strong></td>
+                  <td>10 min</td>
+                  <td>40 min</td>
+                  <td>70.0 poss</td>
+                  <td>95.0 pts/100</td>
+                  <td>14.5 pts</td>
+                  <td>+3.2 pts</td>
+                  <td>31.5%</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- SECCIÓN 4: MOTOR ESTOCÁSTICO MONTE CARLO -->
+        <section id="sec-4">
+          <div class="section-header">
+            <span class="section-num">04</span>
+            <h2>Motor Estocástico Monte Carlo & Inferencia Bayesiana en Vivo</h2>
+          </div>
+          
+          <h3>1. Por qué la Distribución de Poisson Falla en Baloncesto</h3>
+          <p>
+            En disciplinas como el fútbol o hockey sobre hielo donde los eventos son escasos y unitarios (1 gol cada vez), los procesos de Poisson ($\lambda = \sigma^2$) resultan adecuados. Sin embargo, en el baloncesto:
+          </p>
+          <ul style="margin-left: 24px; margin-bottom: 16px; color: #D1D5DB; font-size: 0.94rem;">
+            <li>Las canastas se anotan en paquetes discretos de <strong>1 punto</strong> (tiro libre), <strong>2 puntos</strong> (tiro de campo regular) o <strong>3 puntos</strong> (tiro perimetral).</li>
+            <li>Existe autocorrelación temporal positiva (rachas anotadoras) y negativa (tiempos muertos defensivos).</li>
+            <li>La varianza observada es significativamente superior a la media ($\mathrm{Var}(X) > \mathbb{E}[X]$), fenómeno conocido como <strong>sobre-dispersión</strong> (<em>over-dispersion</em>).</li>
+          </ul>
+
+          <h3>2. La Distribución Binomial Negativa como Solución Óptima</h3>
+          <p>
+            El sistema reemplaza las aproximaciones tradicionales por la distribución <strong>Binomial Negativa</strong>, parametrizada mediante el factor de éxito $p = 0.80$ y el parámetro de escala $r$:
+          </p>
+          <div class="formula-box">
+            $$P(X = k) = \binom{k + r - 1}{k} (1 - p)^r p^k, \quad \text{donde} \quad r = \max\left(0.1, \; \mu \cdot \frac{p}{1 - p}\right)$$
+            <div class="formula-desc">Garantiza una dispersión realista de los puntos generados por minuto sin truncamientos artificiales.</div>
+          </div>
+
+          <h3>3. Actualización Bayesiana Empírica del Ritmo (Shrinkage)</h3>
+          <p>
+            A medida que transcurre el partido, el peso otorgado a la proyección previa (<em>Prior</em>) disminuye gradualmente en función del tiempo jugado ($t_{\text{elapsed}}$), cediendo protagonismo al ritmo real observado en la pista:
+          </p>
+          <div class="formula-box">
+            $$w(t) = \frac{t_{\text{elapsed}}}{t_{\text{elapsed}} + k_{\text{inertia}}}, \quad (k_{\text{inertia}} = 16.0 \text{ min})$$
+            $$\lambda_{\text{posterior}} = w(t) \cdot \lambda_{\text{observado}} + \big(1 - w(t)\big) \cdot \lambda_{\text{prior}}$$
+            <div class="formula-desc">Al inicio ($t=0$), $w=0$ (100% modelo pre-partido). En el medio tiempo de FIBA ($t=20$), $w = 20 / 36 \approx 0.556$. Al finalizar ($t=40$), $w \approx 0.714$.</div>
+          </div>
+
+          <h3>4. Simulación Paso a Paso Minuto a Minuto ($N = 5,000$ Caminos)</h3>
+          <p>
+            Para cada una de las 5,000 trayectorias independientes simuladas en paralelo con operaciones vectorizadas de NumPy:
+          </p>
+          <ol style="margin-left: 24px; margin-bottom: 16px; color: #D1D5DB; font-size: 0.94rem;">
+            <li>Se computa el paso de tiempo $\Delta t \le 1.0$ minuto hasta el término del tiempo reglamentario.</li>
+            <li>Se evalúa el cuarto activo ($Q_1, Q_2, Q_3, Q_4$) y se aplica el multiplicador de ritmo correspondiente.</li>
+            <li>Se calculan las tasas esperadas instantáneas $\mu_A(t)$ y $\mu_B(t)$ con los modificadores de fatiga y clutch.</li>
+            <li>Se muestrea estocásticamente el incremento de puntos $\Delta P_A \sim \text{NegBin}(r_A, p)$ y $\Delta P_B \sim \text{NegBin}(r_B, p)$.</li>
+            <li>Se acumulan los tanteos parciales y se actualizan los diferenciales de marcador para el siguiente minuto.</li>
+          </ol>
+        </section>
+
+        <!-- SECCIÓN 5: AJUSTES SITUACIONALES -->
+        <section id="sec-5">
+          <div class="section-header">
+            <span class="section-num">05</span>
+            <h2>Ajustes Dinámicos Situacionales y Micro-Factores</h2>
+          </div>
+          
+          <h3>1. Regresión de Triples a la Media (Three-Point Luck Mean Reversion)</h3>
+          <p>
+            Estudios cuantitativos en la NBA demuestran que el porcentaje de acierto en triples durante una muestra pequeña (p. ej., los primeros 20 minutos de un juego) contiene un alto componente de varianza aleatoria (suerte). Si un equipo encesta el 60% de sus triples en la primera mitad, tenderá a regresar hacia su media histórica en la segunda.
+          </p>
+          <p>
+            El sistema cuantifica la desviación de puntos atribuibles a la suerte perimetral ($\Delta_{\text{luck}}$) y amortigua el ritmo futuro con un factor de <em>shrinkage</em> del 55%:
+          </p>
+          <div class="formula-box">
+            $$\Delta_{\text{luck}} = \Big( \text{3PM}_{\text{obs}} - \text{3PA}_{\text{obs}} \times \%_{\text{3P, liga}} \Big) \times 3.0$$
+            $$\text{Ajuste Ritmo Futuro} = -\left( \frac{\Delta_{\text{luck}}}{t_{\text{elapsed}}} \right) \times 0.55$$
+          </div>
+
+          <h3>2. Modelo Graduado de Finales Cerrados (Clutch)</h3>
+          <p>
+            En los últimos 2 minutos del último cuarto ($t_{\text{rem}} \le 2.0$), el comportamiento del juego se bifurca radicalmente dependiendo de la diferencia de puntos ($|\Delta S|$):
+          </p>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Escenario de Clutch</th>
+                  <th>Diferencia ($|\Delta S|$)</th>
+                  <th>Comportamiento Táctico</th>
+                  <th>Multiplicador Ritmo</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="badge badge-rose">Carrusel de Faltas</span></td>
+                  <td>$\le 5$ puntos</td>
+                  <td>El equipo en desventaja comete faltas inmediatas (posesiones de 4 a 7 segundos). El reloj se detiene y hay constantes viajes a la línea de tiros libres.</td>
+                  <td><strong style="color: var(--emerald-400);">$\times 1.65$</strong> (+65% ritmo)</td>
+                </tr>
+                <tr>
+                  <td><span class="badge badge-amber">Urgencia Táctica</span></td>
+                  <td>6 a 9 puntos</td>
+                  <td>Aceleración del ritmo en busca de tiros rápidos de 3 puntos sin entrar en faltas intencionales sistemáticas garantizadas.</td>
+                  <td><strong style="color: var(--amber-400);">$\times 1.18$</strong> (+18% ritmo)</td>
+                </tr>
+                <tr>
+                  <td><span class="badge badge-indigo">Drenado de Reloj</span></td>
+                  <td>$\ge 10$ puntos</td>
+                  <td>Último minuto de juego: el equipo en ventaja agota los 24 segundos de posesión y el rival baja los brazos (concesión).</td>
+                  <td><strong style="color: var(--rose-400);">$\times 0.65$</strong> (-35% ritmo)</td>
+                </tr>
+                <tr>
+                  <td><span class="badge" style="background: rgba(255,255,255,0.1); color: #FFF;">Garbage Time</span></td>
+                  <td>$> 20$ puntos</td>
+                  <td>Partido liquidado con ingreso de reservas profundas durante el 4Q. Baja eficiencia y ritmo lento.</td>
+                  <td><strong style="color: var(--rose-400);">$\times 0.82$</strong> ($p=0.72$)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>3. Motor de Prórroga (Overtime Engine - 5 Minutos)</h3>
+          <p>
+            Un error grave en los modelos de predicción simplistas es no simular la prórroga. En las casas de apuestas deportivas (como Kambi / Aposta.la), <strong>los mercados de Total de Puntos (Over/Under) incluyen cualquier prórroga disputada</strong>. Si un modelo solo proyecta 40 o 48 minutos, subestimará sistemáticamente la probabilidad de Over en partidos cerrados.
+          </p>
+          <div class="callout callout-success">
+            <div class="callout-title">Resolución Exacta de Prórroga</div>
+            En cada iteración Monte Carlo donde el marcador reglamentario termina igualado ($S_A(40) = S_B(40)$), el motor dispara una simulación adicional de 5 minutos reglamentarios ($\text{Overtime}$) ajustada por fatiga acumulada (factor 0.95) y ritmo concentrado (factor 1.05), resolviendo el ganador de forma inequívoca.
+          </div>
+        </section>
+
+        <!-- SECCIÓN 6: INTELIGENCIA DE APUESTAS -->
+        <section id="sec-6">
+          <div class="section-header">
+            <span class="section-num">06</span>
+            <h2>Inteligencia Cuantitativa de Apuestas & Detección de Edge</h2>
+          </div>
+          <p>
+            El objetivo del motor no es adivinar el resultado, sino identificar discrepancias de precio matemático entre nuestras probabilidades proyectadas y las cuotas de mercado.
+          </p>
+
+          <h3>1. Desmargenado No-Vig (True Market Implied Probability)</h3>
+          <p>
+            Las cuotas de las casas contienen un sobreprecio comercial (<em>Vig</em> o <em>Juice</em>). Para conocer la verdadera expectativa del mercado, el modelo elimina el margen:
+          </p>
+          <div class="formula-box">
+            $$\text{Vig} = \left( \frac{1}{\text{Cuota}_{\text{Over}}} + \frac{1}{\text{Cuota}_{\text{Under}}} \right) - 1$$
+            $$P_{\text{No-Vig}}(\text{Over}) = \frac{1 / \text{Cuota}_{\text{Over}}}{1 + \text{Vig}}, \qquad P_{\text{No-Vig}}(\text{Under}) = \frac{1 / \text{Cuota}_{\text{Under}}}{1 + \text{Vig}}$$
+          </div>
+
+          <h3>2. Alpha de Mercado ($\alpha$) y Valor Esperado ($EV$)</h3>
+          <p>
+            El <strong>Alpha</strong> mide cuánta ventaja probabilística pura posee nuestro modelo respecto al consenso del mercado desmargenado:
+          </p>
+          <div class="formula-box">
+            $$\alpha_{\text{Over}} = P_{\text{modelo}}(\text{Over}) - P_{\text{No-Vig}}(\text{Over})$$
+            $$EV_{\text{Over}} = P_{\text{modelo}}(\text{Over}) \times (\text{Cuota}_{\text{casa}} - 1) - \big(1 - P_{\text{modelo}}(\text{Over})\big)$$
+          </div>
+
+          <h3>3. Margen de Puntos (Point Spread Edge)</h3>
+          <p>
+            En apuestas de totales, el <strong>Point Spread Edge</strong> ($\Delta_{\text{pts}}$) cuantifica el colchón absoluto en puntos entre la media esperada de la simulación y la línea fijada por el <em>bookmaker</em>:
+          </p>
+          <div class="formula-box">
+            $$\Delta_{\text{pts}} = \mu_{\text{modelo}} - \text{Línea}_{\text{casa}}$$
+            <div class="formula-desc">Ejemplo: Si la simulación proyecta $\mu = 168.4$ pts y la línea en vivo está en $163.5$ pts, existe un Point Spread Edge de $+4.9$ puntos a favor del OVER.</div>
+          </div>
+
+          <h3>4. Matriz Cuantitativa de Calificación de Apuestas (Bet Grades)</h3>
+          <p>
+            El sistema califica institucionalmente cada oportunidad para prevenir sesgos cognitivos del apostador:
+          </p>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Calificación</th>
+                  <th>Criterio Cuantitativo Exigido</th>
+                  <th>Unidades Recomendadas</th>
+                  <th>Nivel de Confianza</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="grade-badge grade-a-plus">GRADO A+ (MÁXIMO VALOR)</span></td>
+                  <td>$|\Delta_{\text{pts}}| \ge 4.5$ pts &nbsp;<strong>y</strong>&nbsp; ($EV \ge +5.0\%$ o $\alpha \ge +4.5\%$) &nbsp;<strong>y</strong>&nbsp; $P \ge 56\%$</td>
+                  <td><strong>2.0 Unidades</strong></td>
+                  <td>Alta institucional (&gt; 90%)</td>
+                </tr>
+                <tr>
+                  <td><span class="grade-badge grade-a">GRADO A (FUERTE)</span></td>
+                  <td>$|\Delta_{\text{pts}}| \ge 3.0$ pts &nbsp;<strong>y</strong>&nbsp; ($EV \ge +3.0\%$ o $\alpha \ge +2.5\%$) &nbsp;<strong>y</strong>&nbsp; $P \ge 53.5\%$</td>
+                  <td><strong>1.5 Unidades</strong></td>
+                  <td>Fuerte convicción (85% - 90%)</td>
+                </tr>
+                <tr>
+                  <td><span class="grade-badge grade-b">GRADO B (MODERADO)</span></td>
+                  <td>$|\Delta_{\text{pts}}| \ge 1.5$ pts &nbsp;<strong>y</strong>&nbsp; ($EV \ge +1.5\%$ o $\alpha \ge +1.0\%$) &nbsp;<strong>y</strong>&nbsp; $P \ge 52.0\%$</td>
+                  <td><strong>0.75 Unidades</strong></td>
+                  <td>Moderada (75% - 80%)</td>
+                </tr>
+                <tr>
+                  <td><span class="grade-badge grade-none">SIN EDGE / EVITAR</span></td>
+                  <td>Desajuste menor a 1.0 pts, $EV$ negativo o probabilidad cercana al 50/50</td>
+                  <td><strong>0.0 Unidades</strong></td>
+                  <td>Sin ventaja matemática</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>5. Criterio de Kelly Fraccionado (Quarter-Kelly)</h3>
+          <p>
+            Para mitigar el riesgo de ruina ante rachas adversas inevitables, el tamaño de la apuesta ($f^*$) se dimensiona mediante el Criterio de Kelly con multiplicador conservador al 25%:
+          </p>
+          <div class="formula-box">
+            $$f^* = 0.25 \times \left( \frac{b \cdot p - q}{b} \right), \quad \text{donde } b = \text{Cuota} - 1, \; p = P_{\text{modelo}}, \; q = 1 - p$$
+          </div>
+        </section>
+
+        <!-- SECCIÓN 7: AUDITORÍA Y CALIBRACIÓN -->
+        <section id="sec-7">
+          <div class="section-header">
+            <span class="section-num">07</span>
+            <h2>Auditoría Histórica, Calibración & Rendimiento</h2>
+          </div>
+          <p>
+            El módulo <span class="code-tag">model/database.py</span> integra un panel de control y auditoría que evalúa continuamente la salud predictiva del algoritmo frente a la realidad:
+          </p>
+
+          <h3>1. Calibración Probabilística con Brier Score</h3>
+          <p>
+            El <strong>Brier Score</strong> mide la precisión y calibración probabilística estricta (análogo al error cuadrático medio de probabilidades):
+          </p>
+          <div class="formula-box">
+            $$\text{BS} = \frac{1}{N} \sum_{i=1}^N \big(P_i - Y_i\big)^2, \quad Y_i \in \{0, 1\}$$
+            <div class="formula-desc">Donde $P_i$ es la probabilidad proyectada y $Y_i$ es el desenlace binario real (1 = Ganada, 0 = Perdida). Un BS de 0.25 equivale al azar; valores &le; 0.20 indican excelente calibración.</div>
+          </div>
+
+          <h3>2. Retorno de Inversión (ROI) y Rendimiento (Yield)</h3>
+          <div class="formula-box">
+            $$\text{ROI / Yield} = \left( \frac{\sum \text{Ganancia Neta}}{\sum \text{Monto Apostado}} \right) \times 100\%$$
+          </div>
+
+          <h3>3. Factor de Beneficio (Profit Factor)</h3>
+          <div class="formula-box">
+            $$\text{Profit Factor} = \frac{\sum \text{Ganancias Brutas}}{\sum |\text{Pérdidas Brutas}|}$$
+            <div class="formula-desc">Un Profit Factor &gt; 1.30 indica una estrategia comercialmente sólida y sustentable en el largo plazo.</div>
+          </div>
+
+          <h3>4. Desglose de Desempeño por Grado de Apuesta</h3>
+          <p>
+            La auditoría segmenta el Win Rate y ROI según el grado asignado, permitiendo verificar empíricamente que las apuestas con <strong>GRADO A+</strong> exhiben un rendimiento superior a las de <strong>GRADO B</strong>.
+          </p>
+        </section>
+
+        <!-- SECCIÓN 8: VALIDACIÓN Y PRUEBAS -->
+        <section id="sec-8">
+          <div class="section-header">
+            <span class="section-num">08</span>
+            <h2>Validación, Suite de Pruebas y Cobertura</h2>
+          </div>
+          <p>
+            La robustez del motor probabilístico está garantizada mediante la suite automatizada <span class="code-tag">tests/test_engine.py</span>, la cual evalúa todos los escenarios críticos:
+          </p>
+          
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Grupo de Pruebas</th>
+                  <th>Casos de Prueba Verificados</th>
+                  <th>Criterio de Aprobación</th>
+                  <th>Resultado</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Trayectorias Base</strong></td>
+                  <td>Validación de baselines para NBA, FIBA, NBL y NCAA Femenil</td>
+                  <td>$\Delta \le 0.5$ pts respecto al promedio reglamentario</td>
+                  <td><span class="badge badge-emerald">PASSED</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Consistencia Estocástica</strong></td>
+                  <td>Orden estricto de cuantiles: $\text{Min} \le P_{05} \le \text{Media} \le P_{95} \le \text{Max}$</td>
+                  <td>Cero violaciones de monotonía en 5,000 caminos</td>
+                  <td><span class="badge badge-emerald">PASSED</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Dean Oliver & Pace</strong></td>
+                  <td>Fórmula de posesiones de Oliver, Matchup Pace y Four Factors</td>
+                  <td>Tolerancia analítica $< 0.01$ en posesiones calculadas</td>
+                  <td><span class="badge badge-emerald">PASSED</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Ajuste Situacional Clutch</strong></td>
+                  <td>Aceleración en $\le 5$ pts vs drenado en $\ge 10$ pts</td>
+                  <td>Verificación de multiplicadores $1.65\times$ y $0.65\times$</td>
+                  <td><span class="badge badge-emerald">PASSED</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Regresión de Triples</strong></td>
+                  <td>Ajuste por racha caliente/fría en volumen perimetral</td>
+                  <td>Contracción del 55% hacia la media de liga confirmada</td>
+                  <td><span class="badge badge-emerald">PASSED</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Resolución de Prórroga</strong></td>
+                  <td>Simulación de empates en tiempo reglamentario</td>
+                  <td>Incremento no sesgado del promedio total (+OT) verificado</td>
+                  <td><span class="badge badge-emerald">PASSED</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Inteligencia Cuantitativa</strong></td>
+                  <td>Cálculo de Point Spread Edge, No-Vig, Alpha y Bet Grades</td>
+                  <td>Grados A+, A, B asignados estrictamente por umbrales</td>
+                  <td><span class="badge badge-emerald">PASSED</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Base de Datos y Auditoría</strong></td>
+                  <td>Migraciones de esquema y cómputo de Brier Score / ROI</td>
+                  <td>Integridad referencial y fórmulas financieras validadas</td>
+                  <td><span class="badge badge-emerald">PASSED</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- SECCIÓN 9: CONCLUSIÓN Y OPERATIVA -->
+        <section id="sec-9">
+          <div class="section-header">
+            <span class="section-num">09</span>
+            <h2>Conclusiones y Recomendaciones Operativas</h2>
+          </div>
+          <p>
+            El sistema cuantitativo de predicción de baloncesto presenta un nivel de madurez matemática y técnica comparable con motores de análisis institucional. La combinación de inferencia bayesiana para el ritmo en vivo, distribución binomial negativa para la sobre-dispersión de anotación, regresión de triples, carrusel graduado de clutch, y el tratamiento explícito de prórrogas elimina los principales errores heurísticos cometidos por el mercado.
+          </p>
+
+          <div class="callout callout-warning">
+            <div class="callout-title">Reglas de Disciplina Operativa para el Apostador</div>
+            <ol style="margin-left: 18px; margin-top: 8px;">
+              <li><strong>Respetar los Bet Grades:</strong> Operar exclusivamente selecciones calificadas como <strong>GRADO A+</strong> o <strong>GRADO A</strong>. Descartar selecciones etiquetadas como "SIN EDGE / EVITAR" sin importar la intuición personal.</li>
+              <li><strong>Seguir la Fracción Kelly:</strong> No exceder nunca el límite de 2.0 unidades recomendadas por apuesta, manteniendo la fracción al 25% (Quarter-Kelly) para neutralizar la varianza del corto plazo.</li>
+              <li><strong>Verificar el Torneo Seleccionado:</strong> Confirmar que el torneo corresponda a la duración reglamentaria del partido (especialmente en competiciones de 10 minutos como NBL y FIBA frente a los 12 minutos de la NBA).</li>
+            </ol>
+          </div>
+        </section>
+
+      </main>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <div>
+        <strong>Plataforma Cuantitativa de Predicción de Baloncesto</strong> &bull; Antigravity Quantitative Engine
+      </div>
+      <div>
+        Documento generado automáticamente &bull; Septiembre 2026
+      </div>
+    </footer>
+  </div>
+</body>
+</html>

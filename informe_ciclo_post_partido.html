@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Protocolo Post-Partido & Machine Learning — Predictor Probabilístico</title>
+  
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- MathJax 3 para fórmulas matemáticas LaTeX -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true
+      },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <style>
+    :root {
+      --bg-primary: #0A0E17;
+      --bg-secondary: #101626;
+      --bg-card: #151F33;
+      --bg-card-hover: #1A2844;
+      --bg-glass: rgba(21, 31, 51, 0.78);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-accent: rgba(6, 182, 212, 0.35);
+      --text-main: #F3F4F6;
+      --text-muted: #9CA3AF;
+      --text-subtle: #6B7280;
+      
+      --cyan-400: #22D3EE;
+      --cyan-500: #06B6D4;
+      --emerald-400: #34D399;
+      --emerald-500: #10B981;
+      --indigo-400: #818CF8;
+      --indigo-500: #6366F1;
+      --amber-400: #FBBF24;
+      --amber-500: #F59E0B;
+      --rose-400: #FB7185;
+      --rose-500: #F43F5E;
+      --purple-400: #C084FC;
+      
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      line-height: 1.7;
+      padding-bottom: 90px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Fondo ambiental con gradientes sutiles */
+    .ambient-glow {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 0;
+      background: radial-gradient(circle at 10% 15%, rgba(6, 182, 212, 0.09) 0%, transparent 40%),
+                  radial-gradient(circle at 90% 20%, rgba(99, 102, 241, 0.09) 0%, transparent 45%),
+                  radial-gradient(circle at 50% 85%, rgba(16, 185, 129, 0.07) 0%, transparent 50%);
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 48px 24px;
+    }
+
+    /* Encabezado Principal */
+    header {
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 38px;
+      margin-bottom: 48px;
+    }
+
+    .header-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 14px;
+      border-radius: 9999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+    }
+
+    .badge-cyan {
+      background: rgba(6, 182, 212, 0.15);
+      color: var(--cyan-400);
+      border: 1px solid rgba(6, 182, 212, 0.35);
+    }
+
+    .badge-emerald {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--emerald-400);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+    }
+
+    .badge-indigo {
+      background: rgba(99, 102, 241, 0.15);
+      color: var(--indigo-400);
+      border: 1px solid rgba(99, 102, 241, 0.35);
+    }
+
+    .badge-amber {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--amber-400);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+    }
+
+    h1 {
+      font-size: 2.65rem;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, #FFFFFF 20%, #93C5FD 70%, #38BDF8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      max-width: 900px;
+      line-height: 1.6;
+    }
+
+    /* Tarjeta Resumen Ejecutivo */
+    .hero-card {
+      background: var(--bg-glass);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--border-accent);
+      border-radius: 18px;
+      padding: 30px 36px;
+      margin-bottom: 48px;
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--cyan-400), var(--indigo-500), var(--emerald-400));
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 22px;
+      margin-top: 22px;
+    }
+
+    .hero-stat {
+      background: rgba(10, 14, 23, 0.65);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 18px;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .hero-stat:hover {
+      transform: translateY(-2px);
+      border-color: rgba(6, 182, 212, 0.4);
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .stat-value {
+      font-size: 1.75rem;
+      font-weight: 800;
+      font-family: var(--font-mono);
+      color: #fff;
+    }
+
+    .stat-desc {
+      font-size: 0.82rem;
+      color: var(--text-subtle);
+      margin-top: 4px;
+    }
+
+    /* Secciones Principales */
+    section {
+      margin-bottom: 56px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .section-num {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: rgba(6, 182, 212, 0.18);
+      color: var(--cyan-400);
+      font-family: var(--font-mono);
+      font-weight: 800;
+      font-size: 1.1rem;
+      border: 1px solid rgba(6, 182, 212, 0.35);
+    }
+
+    h2 {
+      font-size: 1.65rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #FFFFFF;
+    }
+
+    p {
+      color: #D1D5DB;
+      font-size: 1.02rem;
+      margin-bottom: 18px;
+    }
+
+    /* Tarjetas de Información */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 26px 30px;
+      margin-bottom: 24px;
+      transition: border-color 0.25s, box-shadow 0.25s;
+    }
+
+    .card:hover {
+      border-color: rgba(255, 255, 255, 0.15);
+      box-shadow: 0 10px 30px -10px rgba(0,0,0,0.4);
+    }
+
+    .card-title {
+      font-size: 1.22rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Grilla de Pasos / Workflow */
+    .workflow-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .step-card {
+      background: rgba(16, 22, 38, 0.85);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 22px;
+      position: relative;
+    }
+
+    .step-badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 800;
+      font-family: var(--font-mono);
+      padding: 3px 10px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+    }
+
+    .step-1 { background: rgba(59, 130, 246, 0.2); color: #60A5FA; border: 1px solid rgba(59, 130, 246, 0.4); }
+    .step-2 { background: rgba(16, 185, 129, 0.2); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.4); }
+    .step-3 { background: rgba(245, 158, 11, 0.2); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.4); }
+    .step-4 { background: rgba(168, 85, 247, 0.2); color: #C084FC; border: 1px solid rgba(168, 85, 247, 0.4); }
+
+    /* Tablas de Evaluación y Calificación */
+    .table-container {
+      overflow-x: auto;
+      margin: 20px 0;
+      border-radius: 12px;
+      border: 1px solid var(--border-subtle);
+      background: rgba(10, 14, 23, 0.5);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.93rem;
+    }
+
+    th {
+      background: rgba(22, 32, 50, 0.95);
+      color: var(--text-muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-size: 0.76rem;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border-subtle);
+      font-family: var(--font-mono);
+    }
+
+    td {
+      padding: 14px 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: #E2E8F0;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* Insignias de Calidad */
+    .badge-exacto { background: rgba(6, 182, 212, 0.2); color: #22D3EE; font-weight: 700; padding: 4px 10px; border-radius: 6px; font-family: var(--font-mono); }
+    .badge-excelente { background: rgba(16, 185, 129, 0.2); color: #34D399; font-weight: 700; padding: 4px 10px; border-radius: 6px; font-family: var(--font-mono); }
+    .badge-aceptable { background: rgba(245, 158, 11, 0.2); color: #FBBF24; font-weight: 700; padding: 4px 10px; border-radius: 6px; font-family: var(--font-mono); }
+    .badge-desviado { background: rgba(244, 63, 94, 0.2); color: #FB7185; font-weight: 700; padding: 4px 10px; border-radius: 6px; font-family: var(--font-mono); }
+
+    /* Cajas de Alerta y Consejos */
+    .alert-box {
+      border-radius: 12px;
+      padding: 18px 22px;
+      margin: 22px 0;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      line-height: 1.6;
+    }
+
+    .alert-info {
+      background: rgba(14, 165, 233, 0.1);
+      border: 1px solid rgba(14, 165, 233, 0.35);
+      color: #BAE6FD;
+    }
+
+    .alert-success {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      color: #A7F3D0;
+    }
+
+    .alert-warning {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      color: #FDE68A;
+    }
+
+    .alert-icon {
+      font-size: 1.4rem;
+      flex-shrink: 0;
+    }
+
+    /* Checklist Interactivo */
+    .checklist {
+      list-style: none;
+      margin: 18px 0;
+    }
+
+    .checklist li {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 14px 18px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .checklist li:hover {
+      background: rgba(30, 41, 59, 0.8);
+      border-color: rgba(6, 182, 212, 0.35);
+    }
+
+    .check-box {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      border: 2px solid #4B5563;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+
+    .checklist li.checked .check-box {
+      background: var(--emerald-500);
+      border-color: var(--emerald-400);
+    }
+
+    .checklist li.checked .check-box::after {
+      content: '✓';
+      color: #fff;
+      font-size: 0.85rem;
+      font-weight: 900;
+    }
+
+    .checklist li.checked span {
+      text-decoration: line-through;
+      color: var(--text-subtle);
+    }
+
+    /* Código y Fórmulas */
+    code, pre {
+      font-family: var(--font-mono);
+    }
+
+    .code-block {
+      background: #080C14;
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 16px 20px;
+      font-size: 0.88rem;
+      color: #A5B4FC;
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border-subtle);
+      padding-top: 30px;
+      margin-top: 60px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      color: var(--text-subtle);
+      font-size: 0.85rem;
+    }
+
+    @media (max-width: 768px) {
+      h1 { font-size: 2.1rem; }
+      .hero-card { padding: 22px; }
+      .workflow-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="ambient-glow"></div>
+
+  <div class="container">
+
+    <!-- Header -->
+    <header>
+      <div class="header-badges">
+        <span class="badge badge-cyan">🏀 Predictor Baloncesto v2.4</span>
+        <span class="badge badge-emerald">🧠 Auto-Calibración ML Activa</span>
+        <span class="badge badge-indigo">🎯 Milestone Evaluator</span>
+        <span class="badge badge-amber">💵 Moneda: Guaraníes (100.000 Gs.)</span>
+      </div>
+      <h1>Protocolo Post-Partido & Auto-Aprendizaje</h1>
+      <p class="subtitle">
+        Guía operativa completa sobre qué ocurre al sonar la chicharra final: cómo gestionar Streamlit, cómo cotear las predicciones, liquidar apuestas ficticias y entrenar el modelo de Machine Learning con los resultados reales.
+      </p>
+    </header>
+
+    <!-- Tarjeta Resumen Rápido -->
+    <div class="hero-card">
+      <h3 style="font-size: 1.3rem; font-weight: 800; color: #fff; margin-bottom: 6px;">⚡ Resumen Ejecutivo: Las 3 Dudas Clave</h3>
+      <p style="font-size: 0.95rem; margin-bottom: 0;">Respuestas directas al comportamiento de la aplicación una vez concluido el encuentro:</p>
+      
+      <div class="hero-grid">
+        <div class="hero-stat">
+          <div class="stat-label">1. ¿El Streamlit sigue actualizando?</div>
+          <div class="stat-value" style="color: #F87171; font-size: 1.5rem;">Ya no hace falta</div>
+          <div class="stat-desc">El marcador quedó congelado. Conviene poner el Auto-refresh en <b>Desactivado</b> o pulsar <b>Desvincular Link</b>.</div>
+        </div>
+
+        <div class="hero-stat">
+          <div class="stat-label">2. ¿Saca una conclusión?</div>
+          <div class="stat-value" style="color: #34D399; font-size: 1.5rem;">Cotejo Automático</div>
+          <div class="stat-desc">Evalúa cada hito (Q1, Medio Tiempo, Q3, Clutch) calculando el <b>MAE en puntos</b> y cobertura del cono 80%.</div>
+        </div>
+
+        <div class="hero-stat">
+          <div class="stat-label">3. ¿Cómo aprende el modelo?</div>
+          <div class="stat-value" style="color: #38BDF8; font-size: 1.5rem;">Platt Scaling ML</div>
+          <div class="stat-desc">Alimentás el dataset y con 1 clic en la pestaña <b>🤖 ML</b> re-calibrás probabilidades y contracción bayesiana.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN 1: COMPORTAMIENTO DE STREAMLIT AL FINALIZAR -->
+    <section>
+      <div class="section-header">
+        <div class="section-num">01</div>
+        <h2>Estado de la Aplicación y del Scraper en Vivo</h2>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📡 ¿Qué ocurre con la sincronización en vivo?</div>
+        <p>
+          Cuando el partido concluye en la cancha y en la plataforma de apuestas (Aposta.la), el scraper detecta el reloj en <code>00:00</code> y el período como <code>Partido Finalizado</code> (cuarto 5).
+        </p>
+
+        <div class="alert-box alert-info">
+          <div class="alert-icon">💡</div>
+          <div>
+            <b>¿Por qué ya no hace falta que Streamlit se actualice?</b><br>
+            Porque no habrá más jugadas (play-by-play), faltas ni puntos. Mantener el <i>Auto-refresh</i> cada 15 o 30 segundos solo consumiría peticiones innecesarias al servidor de cuotas. Además, al restar 0 minutos de juego, la simulación Monte Carlo muestra un cono de incertidumbre de varianza cero (coincide exactamente con los puntos reales acumulados).
+          </div>
+        </div>
+
+        <h4 style="color:#67E8F9; margin: 18px 0 10px; font-size: 1.05rem;">Acciones recomendadas en la Barra Lateral Izquierda:</h4>
+        <div class="workflow-grid">
+          <div class="step-card">
+            <span class="step-badge step-1">Opción A (Recomendada)</span>
+            <h4 style="color:#fff; margin-bottom: 6px;">Pausar Auto-Refresh</h4>
+            <p style="font-size:0.88rem; color:#9CA3AF; margin-bottom:0;">
+              Cambiá el selector <b>"Auto-actualizar cada:"</b> a <b>"Desactivado"</b>. Así el navegador dejará de refrescar la pantalla cada N segundos.
+            </p>
+          </div>
+
+          <div class="step-card">
+            <span class="step-badge step-2">Opción B (Para cambiar de juego)</span>
+            <h4 style="color:#fff; margin-bottom: 6px;">Desvincular Partido</h4>
+            <p style="font-size:0.88rem; color:#9CA3AF; margin-bottom:0;">
+              Pulsá el botón <b>"⏹️ Desvincular Link en Vivo"</b>. Esto limpia los marcadores del scraper y te permite pegar la URL del siguiente partido que vayas a analizar.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN 2: WORKFLOW PASO A PASO -->
+    <section>
+      <div class="section-header">
+        <div class="section-num">02</div>
+        <h2>Procedimiento Operativo Paso a Paso (Workflow)</h2>
+      </div>
+
+      <p>
+        Para que el sistema procese el partido, emita sus conclusiones y actualice el bankroll, seguí este flujo de 4 pasos dentro de la aplicación:
+      </p>
+
+      <div class="workflow-grid">
+        <div class="step-card">
+          <span class="step-badge step-1">PASO 1</span>
+          <h4 style="color: #fff; margin-bottom: 8px;">Ir a "📋 Historial de Partidos & Cotejo"</h4>
+          <p style="font-size: 0.9rem; color: #cbd5e1;">
+            Hacé clic en la 7ª pestaña superior. Allí encontrarás el listado de todos los partidos registrados en la base de datos PostgreSQL.
+          </p>
+        </div>
+
+        <div class="step-card">
+          <span class="step-badge step-2">PASO 2</span>
+          <h4 style="color: #fff; margin-bottom: 8px;">Ubicar el Partido y Confirmar Marcador</h4>
+          <p style="font-size: 0.9rem; color: #cbd5e1;">
+            Abrí el desplegable del partido que estaba en curso. Verás la tarjeta <b>"🏁 Finalizar Partido y Liquidar Apuestas"</b> con los marcadores de Local y Visitante precargados.
+          </p>
+        </div>
+
+        <div class="step-card">
+          <span class="step-badge step-3">PASO 3</span>
+          <h4 style="color: #fff; margin-bottom: 8px;">Presionar "🏆 Finalizar y Liquidar"</h4>
+          <p style="font-size: 0.9rem; color: #cbd5e1;">
+            Al pulsar este botón, la base de datos fija el marcador final oficial y <b>resuelve al instante todas las apuestas</b> (reales y ficticias en Gs.).
+          </p>
+        </div>
+
+        <div class="step-card">
+          <span class="step-badge step-4">PASO 4</span>
+          <h4 style="color: #fff; margin-bottom: 8px;">Re-entrenar en "🤖 ML"</h4>
+          <p style="font-size: 0.9rem; color: #cbd5e1;">
+            Vas a la 8ª pestaña (ML) y hacés clic en <b>"🧠 Ejecutar Auto-Calibración"</b> para que el algoritmo aprenda de los aciertos y fallos de este juego.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN 3: CONCLUSIONES ANALÍTICAS Y EVALUACIÓN DE HITOS -->
+    <section>
+      <div class="section-header">
+        <div class="section-num">03</div>
+        <h2>¿Cómo saca Conclusiones de sus Estimaciones?</h2>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🎯 El Evaluador de Hitos (Milestone Evaluator)</div>
+        <p>
+          Durante el partido guardaste hitos en momentos críticos (🚩 <i>Pre-Partido</i>, 🚩 <i>Fin 1Q</i>, 🚩 <i>Medio Tiempo</i>, 🚩 <i>Fin 3Q</i>, 🚩 <i>Clutch</i>). Al finalizar, el sistema genera de forma automática la **Tabla de Cotejo Post-Partido**:
+        </p>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Hito Guardado</th>
+                <th>Momento del Juego</th>
+                <th>Marcador en Hito</th>
+                <th>Proyección Modelo</th>
+                <th>Total Final Real</th>
+                <th>Error Absoluto (MAE)</th>
+                <th>Cono 80% Confianza</th>
+                <th>Calificación Oficial</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><b>🚩 Pre-Partido</b></td>
+                <td>00:00 (Inicio)</td>
+                <td>0 – 0</td>
+                <td>171.2 pts</td>
+                <td><b>172 pts</b></td>
+                <td style="color:#22D3EE; font-family:var(--font-mono); font-weight:700;">+0.8 pts</td>
+                <td>[162 – 180] pts (Adentro)</td>
+                <td><span class="badge-exacto">🎯 EXACTO</span></td>
+              </tr>
+              <tr>
+                <td><b>🚩 Fin 1Q</b></td>
+                <td>10:00 (Q1)</td>
+                <td>24 – 22 (46 pts)</td>
+                <td>176.4 pts</td>
+                <td><b>172 pts</b></td>
+                <td style="color:#34D399; font-family:var(--font-mono); font-weight:700;">+4.4 pts</td>
+                <td>[167 – 184] pts (Adentro)</td>
+                <td><span class="badge-excelente">✅ EXCELENTE</span></td>
+              </tr>
+              <tr>
+                <td><b>🚩 Medio Tiempo</b></td>
+                <td>20:00 (Q2)</td>
+                <td>42 – 40 (82 pts)</td>
+                <td>170.5 pts</td>
+                <td><b>172 pts</b></td>
+                <td style="color:#22D3EE; font-family:var(--font-mono); font-weight:700;">-1.5 pts</td>
+                <td>[164 – 178] pts (Adentro)</td>
+                <td><span class="badge-exacto">🎯 EXACTO</span></td>
+              </tr>
+              <tr>
+                <td><b>🚩 Fin 3Q</b></td>
+                <td>30:00 (Q3)</td>
+                <td>66 – 60 (126 pts)</td>
+                <td>173.1 pts</td>
+                <td><b>172 pts</b></td>
+                <td style="color:#22D3EE; font-family:var(--font-mono); font-weight:700;">+1.1 pts</td>
+                <td>[168 – 177] pts (Adentro)</td>
+                <td><span class="badge-exacto">🎯 EXACTO</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4 style="color:#67E8F9; margin: 20px 0 10px; font-size: 1.05rem;">Criterios de Calificación Científica del Modelo:</h4>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px;">
+          <div style="background: rgba(6, 182, 212, 0.08); border: 1px solid rgba(6, 182, 212, 0.3); border-radius: 10px; padding: 14px;">
+            <div style="color: #22D3EE; font-weight: 800; font-family: var(--font-mono);">🎯 EXACTO</div>
+            <div style="color: #CBD5E1; font-size: 0.82rem; margin-top: 4px;">Desvío menor o igual a <b>±3.0 puntos</b> respecto al total final.</div>
+          </div>
+          <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; padding: 14px;">
+            <div style="color: #34D399; font-weight: 800; font-family: var(--font-mono);">✅ EXCELENTE</div>
+            <div style="color: #CBD5E1; font-size: 0.82rem; margin-top: 4px;">Desvío entre <b>±3.1 y ±7.0 puntos</b>. Proyección de alta calidad.</div>
+          </div>
+          <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 10px; padding: 14px;">
+            <div style="color: #FBBF24; font-weight: 800; font-family: var(--font-mono);">🟡 ACEPTABLE</div>
+            <div style="color: #CBD5E1; font-size: 0.82rem; margin-top: 4px;">Desvío entre <b>±7.1 y ±12.0 puntos</b>. Dentro del cono estándar.</div>
+          </div>
+          <div style="background: rgba(244, 63, 94, 0.08); border: 1px solid rgba(244, 63, 94, 0.3); border-radius: 10px; padding: 14px;">
+            <div style="color: #FB7185; font-weight: 800; font-family: var(--font-mono);">❌ DESVIADO</div>
+            <div style="color: #CBD5E1; font-size: 0.82rem; margin-top: 4px;">Desvío superior a <b>±12.0 puntos</b>. Alerta de ritmo atípico.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN 4: APUESTAS FICTICIAS Y RENDIMIENTO EN GUARANÍES -->
+    <section>
+      <div class="section-header">
+        <div class="section-num">04</div>
+        <h2>Liquidación de Apuestas & Rendimiento en Guaraníes (`Gs.`)</h2>
+      </div>
+
+      <div class="card">
+        <div class="card-title">💵 ¿Qué pasa con las apuestas ficticias (100.000 Gs.) y reales?</div>
+        <p>
+          Al presionar <b>Finalizar y Liquidar</b>, la base de datos recorre automáticamente todas las apuestas que estaban en estado <code>PENDIENTE</code>:
+        </p>
+
+        <ul style="margin-left: 20px; color: #CBD5E1; font-size: 0.95rem; margin-bottom: 20px;">
+          <li style="margin-bottom: 8px;"><b>Si apostaste OVER 169.5 y el partido terminó con 172 pts:</b> Pasa a <span style="color:#34D399; font-weight:700;">GANADA</span>. Se acredita la ganancia neta: <code>Gs. 100.000 × (Cuota - 1)</code>.</li>
+          <li style="margin-bottom: 8px;"><b>Si apostaste UNDER 169.5 y el partido terminó con 172 pts:</b> Pasa a <span style="color:#F87171; font-weight:700;">PERDIDA</span>. Se descuenta el monto arriesgado: <code>-100.000 Gs.</code></li>
+          <li style="margin-bottom: 8px;"><b>Si la línea fue exacta 172.0 (Empate):</b> Pasa a <span style="color:#FBBF24; font-weight:700;">PUSH</span> (Devolución sin ganancia ni pérdida).</li>
+        </ul>
+
+        <h4 style="color:#67E8F9; margin: 20px 0 10px; font-size: 1.05rem;">Impacto en el Tablero de Rendimiento (`🎰 Apuesta en Vivo`):</h4>
+        <div class="hero-grid" style="margin-top: 14px;">
+          <div class="hero-stat">
+            <div class="stat-label">🎯 Win Rate Actualizado</div>
+            <div class="stat-value" style="color:#34D399;">% Acierto</div>
+            <div class="stat-desc">Desglosado globalmente, en OVER y en UNDER.</div>
+          </div>
+          <div class="hero-stat">
+            <div class="stat-label">💵 Yield / ROI Neto</div>
+            <div class="stat-value" style="color:#38BDF8;">Retorno Gs.</div>
+            <div class="stat-desc">Ganancia neta acumulada en Guaraníes vs volumen apostado.</div>
+          </div>
+          <div class="hero-stat">
+            <div class="stat-label">⚖️ Profit Factor</div>
+            <div class="stat-value" style="color:#FBBF24;">$\frac{\sum Ganancias}{\sum Pérdidas}$</div>
+            <div class="stat-desc">Un valor &gt; 1.5 indica una estrategia matemáticamente sólida.</div>
+          </div>
+          <div class="hero-stat">
+            <div class="stat-label">📊 Payout Tiers (Cuotas)</div>
+            <div class="stat-value" style="color:#C084FC;">≥ 2.10</div>
+            <div class="stat-desc">Comprueba si las apuestas de pago elevado fueron rentables.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN 5: CÓMO APRENDE EL MACHINE LEARNING -->
+    <section>
+      <div class="section-header">
+        <div class="section-num">05</div>
+        <h2>El Proceso de Aprendizaje Automático (Machine Learning)</h2>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🧠 ¿Cómo aprende el algoritmo de los resultados observados?</div>
+        <p>
+          El sistema no se limita a guardar números; aplica un método de calibración empírica en 2 niveles supervisados cada vez que ejecutás el auto-entrenamiento:
+        </p>
+
+        <div style="background: rgba(8, 12, 20, 0.85); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 20px; margin: 18px 0;">
+          <h4 style="color: #38BDF8; font-size: 1.05rem; margin-bottom: 8px;">1. Calibración Platt Scaling (Regresión Logística Sigmoidal con SciPy)</h4>
+          <p style="font-size: 0.92rem; color: #94A3B8; margin-bottom: 10px;">
+            Las simulaciones Monte Carlo crudas a veces pecan de exceso de confianza en cuotas extremas debido a la comisión oculta de la casa (Vig/Juice). Platt Scaling ajusta la probabilidad mediante la función logística:
+          </p>
+          <div class="code-block">
+            $$\hat{P}_{\text{calibrada}} = \frac{1}{1 + \exp\Big(-\big(a \cdot \text{logit}(P_{\text{cruda}}) + b\big)\Big)}$$
+          </div>
+          <p style="font-size: 0.85rem; color: #94A3B8; margin-bottom: 0;">
+            SciPy optimiza los coeficientes <b>$a$</b> (escala) y <b>$b$</b> (sesgo) minimizando la <b>Cross-Entropy Penalizada</b>, lo que asegura que si el modelo predice 70% de probabilidad, el evento realmente ocurra 7 de cada 10 veces, reduciendo el <b>Brier Score</b> hacia cero.
+          </p>
+        </div>
+
+        <div style="background: rgba(8, 12, 20, 0.85); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 20px; margin: 18px 0;">
+          <h4 style="color: #34D399; font-size: 1.05rem; margin-bottom: 8px;">2. Optimización Bayesiana de Inercia de Cuartos ($k$) y Corrección de Sesgo</h4>
+          <p style="font-size: 0.92rem; color: #94A3B8; margin-bottom: 10px;">
+            El ritmo de juego se ajusta mediante una combinación bayesiana entre el ritmo del torneo (prior) y el ritmo observado en vivo. El algoritmo optimiza el parámetro de contracción $k$:
+          </p>
+          <div class="code-block">
+            $$\text{Ritmo}_{\text{posterior}} = \frac{k \cdot \text{Ritmo}_{\text{torneo}} + \text{Minutos}_{\text{jugados}} \cdot \text{Ritmo}_{\text{vivo}}}{k + \text{Minutos}_{\text{jugados}}} + \text{Bias}_{\text{offset}}$$
+          </div>
+          <p style="font-size: 0.85rem; color: #94A3B8; margin-bottom: 0;">
+            Si el cotejo post-partido demuestra que los equipos de esa liga suelen acelerar más en el último cuarto, el modelo incrementa o reduce automáticamente el factor $k$ y añade una compensación de puntos (<code>Bias Offset</code>) para futuros partidos.
+          </p>
+        </div>
+
+        <div class="alert-box alert-success">
+          <div class="alert-icon">🚀</div>
+          <div>
+            <b>¿Cómo activar el aprendizaje?</b><br>
+            Solo tenés que ir a la pestaña <b>`🤖 Aprendizaje Automático & Calibración (ML)`</b> y pulsar el botón <b>`🧠 Ejecutar Auto-Calibración / Re-entrenar Modelo`</b>. El sistema recalcula todo en menos de un segundo y actualiza el gráfico de confiabilidad en vivo.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CHECKLIST DE ACCIÓN -->
+    <section>
+      <div class="section-header">
+        <div class="section-num">06</div>
+        <h2>Checklist Rápido al Terminar un Partido</h2>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📋 Lista de Verificación Operativa (Hacé clic para tachar)</div>
+        <p style="font-size: 0.9rem; color: #9CA3AF;">Podés usar esta lista interactiva cada vez que termine un partido:</p>
+
+        <ul class="checklist" id="postGameChecklist">
+          <li onclick="toggleCheck(this)">
+            <div class="check-box"></div>
+            <span><b>Paso 1:</b> Cambiar "Auto-actualizar cada:" a "Desactivado" en la barra lateral.</span>
+          </li>
+          <li onclick="toggleCheck(this)">
+            <div class="check-box"></div>
+            <span><b>Paso 2:</b> Ir a la pestaña "📋 Historial de Partidos & Cotejo" y abrir el partido.</span>
+          </li>
+          <li onclick="toggleCheck(this)">
+            <div class="check-box"></div>
+            <span><b>Paso 3:</b> Verificar los marcadores finales de Local y Visitante.</span>
+          </li>
+          <li onclick="toggleCheck(this)">
+            <div class="check-box"></div>
+            <span><b>Paso 4:</b> Pulsar el botón "🏆 Finalizar y Liquidar" para resolver apuestas y cotear hitos.</span>
+          </li>
+          <li onclick="toggleCheck(this)">
+            <div class="check-box"></div>
+            <span><b>Paso 5:</b> Revisar la tabla de cotejo para ver qué hitos fueron EXACTOS o EXCELENTES.</span>
+          </li>
+          <li onclick="toggleCheck(this)">
+            <div class="check-box"></div>
+            <span><b>Paso 6:</b> Ir a "🤖 ML" y presionar "🧠 Ejecutar Auto-Calibración" para que el modelo aprenda.</span>
+          </li>
+          <li onclick="toggleCheck(this)">
+            <div class="check-box"></div>
+            <span><b>Paso 7:</b> Pulsar "⏹️ Desvincular Link en Vivo" en el sidebar para dejar el predictor listo para el próximo juego.</span>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <div><b>Predictor Probabilístico de Baloncesto</b> &copy; 2026 — Poliverso Predicción</div>
+      <div style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--cyan-400);">
+        Motor Monte Carlo + Platt Scaling + PostgreSQL
+      </div>
+    </footer>
+
+  </div>
+
+  <script>
+    function toggleCheck(el) {
+      el.classList.toggle('checked');
+    }
+  </script>
+</body>
+</html>

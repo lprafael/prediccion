@@ -1,0 +1,706 @@
+[
+  {
+    "fb": {
+      "tournament": "Es1",
+      "home": "Levante",
+      "away": "Athletic Bilbao",
+      "dateTime": "21/10/2026 15:00",
+      "p1": 20,
+      "px": 43,
+      "p2": 37,
+      "pred": "X",
+      "exactScore": "1-1",
+      "avgGoals": 2.38,
+      "fbOdd1": 3.6,
+      "fbOddX": 3.25,
+      "fbOdd2": 2.1
+    },
+    "ap": {
+      "id": 1029410505,
+      "home": "Levante",
+      "away": "Athletic Bilbao",
+      "league": "La Liga",
+      "start": "2026-10-21T18:03:00Z",
+      "state": "STARTED",
+      "odds": {
+        "1": 1.22,
+        "X": 5.3,
+        "2": 11.5
+      }
+    },
+    "evals": [
+      {
+        "pick": "1",
+        "prob_fb": 20.0,
+        "cuota_aposta": 1.22,
+        "ev_pct": -75.6,
+        "edge_pct": -61.9672131147541,
+        "kelly_pct": 0.0
+      },
+      {
+        "pick": "X",
+        "prob_fb": 43.0,
+        "cuota_aposta": 5.3,
+        "ev_pct": 127.89999999999999,
+        "edge_pct": 24.132075471698112,
+        "kelly_pct": 7.436046511627907
+      },
+      {
+        "pick": "2",
+        "prob_fb": 37.0,
+        "cuota_aposta": 11.5,
+        "ev_pct": 325.5,
+        "edge_pct": 28.304347826086957,
+        "kelly_pct": 7.75
+      }
+    ],
+    "best": {
+      "pick": "2",
+      "prob_fb": 37.0,
+      "cuota_aposta": 11.5,
+      "ev_pct": 325.5,
+      "edge_pct": 28.304347826086957,
+      "kelly_pct": 7.75
+    }
+  },
+  {
+    "fb": {
+      "tournament": "UCL",
+      "home": "Inter",
+      "away": "Shakhtar Donetsk",
+      "dateTime": "21/10/2026 16:00",
+      "p1": 45,
+      "px": 29,
+      "p2": 26,
+      "pred": "1",
+      "exactScore": "3-1",
+      "avgGoals": 2.63,
+      "fbOdd1": 1.25,
+      "fbOddX": 6,
+      "fbOdd2": 11
+    },
+    "ap": {
+      "id": 1028943243,
+      "home": "Inter",
+      "away": "Shakhtar Donetsk",
+      "league": "Champions League",
+      "start": "2026-10-21T19:00:00Z",
+      "state": "NOT_STARTED",
+      "odds": {
+        "1": 1.22,
+        "X": 6.5,
+        "2": 10.5
+      }
+    },
+    "evals": [
+      {
+        "pick": "1",
+        "prob_fb": 45.0,
+        "cuota_aposta": 1.22,
+        "ev_pct": -45.099999999999994,
+        "edge_pct": -36.9672131147541,
+        "kelly_pct": 0.0
+      },
+      {
+        "pick": "X",
+        "prob_fb": 28.999999999999996,
+        "cuota_aposta": 6.5,
+        "ev_pct": 88.49999999999997,
+        "edge_pct": 13.615384615384613,
+        "kelly_pct": 4.022727272727273
+      },
+      {
+        "pick": "2",
+        "prob_fb": 26.0,
+        "cuota_aposta": 10.5,
+        "ev_pct": 173.0,
+        "edge_pct": 16.476190476190478,
+        "kelly_pct": 4.552631578947369
+      }
+    ],
+    "best": {
+      "pick": "2",
+      "prob_fb": 26.0,
+      "cuota_aposta": 10.5,
+      "ev_pct": 173.0,
+      "edge_pct": 16.476190476190478,
+      "kelly_pct": 4.552631578947369
+    }
+  },
+  {
+    "fb": {
+      "tournament": "UCL",
+      "home": "Real Madrid",
+      "away": "RB Leipzig",
+      "dateTime": "21/10/2026 16:00",
+      "p1": 47,
+      "px": 35,
+      "p2": 18,
+      "pred": "1",
+      "exactScore": "4-1",
+      "avgGoals": 2.8,
+      "fbOdd1": 1.25,
+      "fbOddX": 7,
+      "fbOdd2": 10
+    },
+    "ap": {
+      "id": 1028943235,
+      "home": "Real Madrid",
+      "away": "RB Leipzig",
+      "league": "Champions League",
+      "start": "2026-10-21T19:00:00Z",
+      "state": "NOT_STARTED",
+      "odds": {
+        "1": 1.21,
+        "X": 7.0,
+        "2": 10.0
+      }
+    },
+    "evals": [
+      {
+        "pick": "1",
+        "prob_fb": 47.0,
+        "cuota_aposta": 1.21,
+        "ev_pct": -43.13,
+        "edge_pct": -35.64462809917356,
+        "kelly_pct": 0.0
+      },
+      {
+        "pick": "X",
+        "prob_fb": 35.0,
+        "cuota_aposta": 7.0,
+        "ev_pct": 144.99999999999997,
+        "edge_pct": 20.71428571428571,
+        "kelly_pct": 6.041666666666665
+      },
+      {
+        "pick": "2",
+        "prob_fb": 18.0,
+        "cuota_aposta": 10.0,
+        "ev_pct": 79.99999999999999,
+        "edge_pct": 7.999999999999999,
+        "kelly_pct": 2.2222222222222214
+      }
+    ],
+    "best": {
+      "pick": "X",
+      "prob_fb": 35.0,
+      "cuota_aposta": 7.0,
+      "ev_pct": 144.99999999999997,
+      "edge_pct": 20.71428571428571,
+      "kelly_pct": 6.041666666666665
+    }
+  },
+  {
+    "fb": {
+      "tournament": "L1",
+      "home": "Reading",
+      "away": "Leyton Orient",
+      "dateTime": "21/10/2026 16:00",
+      "p1": 22,
+      "px": 36,
+      "p2": 42,
+      "pred": "2",
+      "exactScore": "0-1",
+      "avgGoals": 1.58,
+      "fbOdd1": 1.44,
+      "fbOddX": 4.33,
+      "fbOdd2": 6.5
+    },
+    "ap": {
+      "id": 1028143455,
+      "home": "Reading",
+      "away": "Leyton Orient",
+      "league": "Liga Uno",
+      "start": "2026-10-21T19:00:00Z",
+      "state": "NOT_STARTED",
+      "odds": {
+        "1": 1.53,
+        "X": 4.3,
+        "2": 5.75
+      }
+    },
+    "evals": [
+      {
+        "pick": "1",
+        "prob_fb": 22.0,
+        "cuota_aposta": 1.53,
+        "ev_pct": -66.34,
+        "edge_pct": -43.35947712418301,
+        "kelly_pct": 0.0
+      },
+      {
+        "pick": "X",
+        "prob_fb": 36.0,
+        "cuota_aposta": 4.3,
+        "ev_pct": 54.79999999999998,
+        "edge_pct": 12.744186046511627,
+        "kelly_pct": 4.151515151515151
+      },
+      {
+        "pick": "2",
+        "prob_fb": 42.0,
+        "cuota_aposta": 5.75,
+        "ev_pct": 141.5,
+        "edge_pct": 24.60869565217391,
+        "kelly_pct": 7.44736842105263
+      }
+    ],
+    "best": {
+      "pick": "2",
+      "prob_fb": 42.0,
+      "cuota_aposta": 5.75,
+      "ev_pct": 141.5,
+      "edge_pct": 24.60869565217391,
+      "kelly_pct": 7.44736842105263
+    }
+  },
+  {
+    "fb": {
+      "tournament": "UCL",
+      "home": "Aston Villa",
+      "away": "Viking FK",
+      "dateTime": "21/10/2026 16:00",
+      "p1": 42,
+      "px": 34,
+      "p2": 24,
+      "pred": "1",
+      "exactScore": "3-1",
+      "avgGoals": 3.41,
+      "fbOdd1": 1.25,
+      "fbOddX": 6.25,
+      "fbOdd2": 11
+    },
+    "ap": {
+      "id": 1028943240,
+      "home": "Aston Villa",
+      "away": "Viking Stavanger",
+      "league": "Champions League",
+      "start": "2026-10-21T19:00:00Z",
+      "state": "NOT_STARTED",
+      "odds": {
+        "1": 1.2,
+        "X": 7.0,
+        "2": 10.0
+      }
+    },
+    "evals": [
+      {
+        "pick": "1",
+        "prob_fb": 42.0,
+        "cuota_aposta": 1.2,
+        "ev_pct": -49.6,
+        "edge_pct": -41.333333333333336,
+        "kelly_pct": 0.0
+      },
+      {
+        "pick": "X",
+        "prob_fb": 34.0,
+        "cuota_aposta": 7.0,
+        "ev_pct": 138.00000000000003,
+        "edge_pct": 19.71428571428572,
+        "kelly_pct": 5.75
+      },
+      {
+        "pick": "2",
+        "prob_fb": 24.0,
+        "cuota_aposta": 10.0,
+        "ev_pct": 140.0,
+        "edge_pct": 13.999999999999998,
+        "kelly_pct": 3.888888888888889
+      }
+    ],
+    "best": {
+      "pick": "2",
+      "prob_fb": 24.0,
+      "cuota_aposta": 10.0,
+      "ev_pct": 140.0,
+      "edge_pct": 13.999999999999998,
+      "kelly_pct": 3.888888888888889
+    }
+  },
+  {
+    "fb": {
+      "tournament": "Us1",
+      "home": "FC Cincinnati",
+      "away": "DC United",
+      "dateTime": "21/10/2026 20:00",
+      "p1": 39,
+      "px": 38,
+      "p2": 23,
+      "pred": "1",
+      "exactScore": "3-1",
+      "avgGoals": 3.52,
+      "fbOdd1": 1.57,
+      "fbOddX": 4.75,
+      "fbOdd2": 4.75
+    },
+    "ap": {
+      "id": 1029137190,
+      "home": "FC Cincinnati",
+      "away": "D.C. United",
+      "league": "MLS",
+      "start": "2026-10-21T23:00:00Z",
+      "state": "NOT_STARTED",
+      "odds": {
+        "1": 1.66,
+        "X": 4.75,
+        "2": 4.5
+      }
+    },
+    "evals": [
+      {
+        "pick": "1",
+        "prob_fb": 39.0,
+        "cuota_aposta": 1.66,
+        "ev_pct": -35.260000000000005,
+        "edge_pct": -21.24096385542169,
+        "kelly_pct": 0.0
+      },
+      {
+        "pick": "X",
+        "prob_fb": 38.0,
+        "cuota_aposta": 4.75,
+        "ev_pct": 80.5,
+        "edge_pct": 16.947368421052634,
+        "kelly_pct": 5.366666666666667
+      },
+      {
+        "pick": "2",
+        "prob_fb": 23.0,
+        "cuota_aposta": 4.5,
+        "ev_pct": 3.500000000000014,
+        "edge_pct": 0.77777777777778,
+        "kelly_pct": 0.2500000000000002
+      }
+    ],
+    "best": {
+      "pick": "X",
+      "prob_fb": 38.0,
+      "cuota_aposta": 4.75,
+      "ev_pct": 80.5,
+      "edge_pct": 16.947368421052634,
+      "kelly_pct": 5.366666666666667
+    }
+  },
+  {
+    "fb": {
+      "tournament": "CS",
+      "home": "CA Torque",
+      "away": "Atlético Mineiro",
+      "dateTime": "21/10/2026 19:00",
+      "p1": 48,
+      "px": 19,
+      "p2": 33,
+      "pred": "1",
+      "exactScore": "2-1",
+      "avgGoals": 2.54,
+      "fbOdd1": 3.3,
+      "fbOddX": 3.1,
+      "fbOdd2": 2.37
+    },
+    "ap": {
+      "id": 1029220457,
+      "home": "Montevideo City Torque",
+      "away": "Atlético Mineiro-MG",
+      "league": "Copa Sudamericana",
+      "start": "2026-10-21T22:00:00Z",
+      "state": "NOT_STARTED",
+      "odds": {
+        "1": 3.1,
+        "X": 2.95,
+        "2": 2.45
+      }
+    },
+    "evals": [
+      {
+        "pick": "1",
+        "prob_fb": 48.0,
+        "cuota_aposta": 3.1,
+        "ev_pct": 48.8,
+        "edge_pct": 15.741935483870966,
+        "kelly_pct": 5.809523809523808
+      },
+      {
+        "pick": "X",
+        "prob_fb": 19.0,
+        "cuota_aposta": 2.95,
+        "ev_pct": -43.95,
+        "edge_pct": -14.898305084745761,
+        "kelly_pct": 0.0
+      },
+      {
+        "pick": "2",
+        "prob_fb": 33.0,
+        "cuota_aposta": 2.45,
+        "ev_pct": -19.149999999999988,
+        "edge_pct": -7.816326530612239,
+        "kelly_pct": 0.0
+      }
+    ],
+    "best": {
+      "pick": "1",
+      "prob_fb": 48.0,
+      "cuota_aposta": 3.1,
+      "ev_pct": 48.8,
+      "edge_pct": 15.741935483870966,
+      "kelly_pct": 5.809523809523808
+    }
+  },
+  {
+    "fb": {
+      "tournament": "UCL",
+      "home": "Bayern Munich",
+      "away": "Arsenal",
+      "dateTime": "21/10/2026 16:00",
+      "p1": 37,
+      "px": 40,
+      "p2": 23,
+      "pred": "X",
+      "exactScore": "2-2",
+      "avgGoals": 3.31,
+      "fbOdd1": 2.2,
+      "fbOddX": 3.6,
+      "fbOdd2": 3
+    },
+    "ap": {
+      "id": 1028943237,
+      "home": "Bayern Múnich",
+      "away": "Arsenal",
+      "league": "Champions League",
+      "start": "2026-10-21T19:00:00Z",
+      "state": "NOT_STARTED",
+      "odds": {
+        "1": 2.3,
+        "X": 3.65,
+        "2": 2.75
+      }
+    },
+    "evals": [
+      {
+        "pick": "1",
+        "prob_fb": 37.0,
+        "cuota_aposta": 2.3,
+        "ev_pct": -14.900000000000002,
+        "edge_pct": -6.478260869565222,
+        "kelly_pct": 0.0
+      },
+      {
+        "pick": "X",
+        "prob_fb": 40.0,
+        "cuota_aposta": 3.65,
+        "ev_pct": 46.0,
+        "edge_pct": 12.602739726027401,
+        "kelly_pct": 4.339622641509435
+      },
+      {
+        "pick": "2",
+        "prob_fb": 23.0,
+        "cuota_aposta": 2.75,
+        "ev_pct": -36.74999999999999,
+        "edge_pct": -13.363636363636363,
+        "kelly_pct": 0.0
+      }
+    ],
+    "best": {
+      "pick": "X",
+      "prob_fb": 40.0,
+      "cuota_aposta": 3.65,
+      "ev_pct": 46.0,
+      "edge_pct": 12.602739726027401,
+      "kelly_pct": 4.339622641509435
+    }
+  },
+  {
+    "fb": {
+      "tournament": "UCL",
+      "home": "Club Brugge",
+      "away": "Lens",
+      "dateTime": "21/10/2026 16:00",
+      "p1": 40,
+      "px": 34,
+      "p2": 26,
+      "pred": "1",
+      "exactScore": "2-1",
+      "avgGoals": 3.18,
+      "fbOdd1": 1.85,
+      "fbOddX": 4.2,
+      "fbOdd2": 3.6
+    },
+    "ap": {
+      "id": 1029226848,
+      "home": "Club Brugge",
+      "away": "Lens",
+      "league": "Champions League",
+      "start": "2026-10-21T19:00:00Z",
+      "state": "NOT_STARTED",
+      "odds": {
+        "1": 1.73,
+        "X": 4.2,
+        "2": 3.95
+      }
+    },
+    "evals": [
+      {
+        "pick": "1",
+        "prob_fb": 40.0,
+        "cuota_aposta": 1.73,
+        "ev_pct": -30.799999999999994,
+        "edge_pct": -17.80346820809249,
+        "kelly_pct": 0.0
+      },
+      {
+        "pick": "X",
+        "prob_fb": 34.0,
+        "cuota_aposta": 4.2,
+        "ev_pct": 42.80000000000002,
+        "edge_pct": 10.190476190476193,
+        "kelly_pct": 3.343750000000001
+      },
+      {
+        "pick": "2",
+        "prob_fb": 26.0,
+        "cuota_aposta": 3.95,
+        "ev_pct": 2.7000000000000135,
+        "edge_pct": 0.6835443037974731,
+        "kelly_pct": 0.228813559322035
+      }
+    ],
+    "best": {
+      "pick": "X",
+      "prob_fb": 34.0,
+      "cuota_aposta": 4.2,
+      "ev_pct": 42.80000000000002,
+      "edge_pct": 10.190476190476193,
+      "kelly_pct": 3.343750000000001
+    }
+  },
+  {
+    "fb": {
+      "tournament": "CLA",
+      "home": "Palmeiras",
+      "away": "Fluminense",
+      "dateTime": "21/10/2026 21:30",
+      "p1": 39,
+      "px": 41,
+      "p2": 20,
+      "pred": "X",
+      "exactScore": "0-0",
+      "avgGoals": 2.13,
+      "fbOdd1": 1.7,
+      "fbOddX": 3.5,
+      "fbOdd2": 5.5
+    },
+    "ap": {
+      "id": 1029166415,
+      "home": "Palmeiras-SP",
+      "away": "Fluminense-RJ",
+      "league": "Copa Libertadores",
+      "start": "2026-10-22T00:30:00Z",
+      "state": "NOT_STARTED",
+      "odds": {
+        "1": 1.71,
+        "X": 3.35,
+        "2": 5.4
+      }
+    },
+    "evals": [
+      {
+        "pick": "1",
+        "prob_fb": 39.0,
+        "cuota_aposta": 1.71,
+        "ev_pct": -33.309999999999995,
+        "edge_pct": -19.479532163742686,
+        "kelly_pct": 0.0
+      },
+      {
+        "pick": "X",
+        "prob_fb": 41.0,
+        "cuota_aposta": 3.35,
+        "ev_pct": 37.349999999999994,
+        "edge_pct": 11.149253731343284,
+        "kelly_pct": 3.9734042553191484
+      },
+      {
+        "pick": "2",
+        "prob_fb": 20.0,
+        "cuota_aposta": 5.4,
+        "ev_pct": 8.000000000000007,
+        "edge_pct": 1.4814814814814836,
+        "kelly_pct": 0.45454545454545486
+      }
+    ],
+    "best": {
+      "pick": "X",
+      "prob_fb": 41.0,
+      "cuota_aposta": 3.35,
+      "ev_pct": 37.349999999999994,
+      "edge_pct": 11.149253731343284,
+      "kelly_pct": 3.9734042553191484
+    }
+  },
+  {
+    "fb": {
+      "tournament": "UCL",
+      "home": "Real Betis",
+      "away": "Feyenoord",
+      "dateTime": "21/10/2026 16:00",
+      "p1": 58,
+      "px": 24,
+      "p2": 18,
+      "pred": "1",
+      "exactScore": "2-1",
+      "avgGoals": 3.75,
+      "fbOdd1": 1.65,
+      "fbOddX": 4.33,
+      "fbOdd2": 4.5
+    },
+    "ap": {
+      "id": 1028943202,
+      "home": "Real Betis",
+      "away": "Feyenoord",
+      "league": "Champions League",
+      "start": "2026-10-21T19:00:00Z",
+      "state": "NOT_STARTED",
+      "odds": {
+        "1": 1.72,
+        "X": 4.0,
+        "2": 4.2
+      }
+    },
+    "evals": [
+      {
+        "pick": "1",
+        "prob_fb": 57.99999999999999,
+        "cuota_aposta": 1.72,
+        "ev_pct": -0.24000000000000687,
+        "edge_pct": -0.13953488372093759,
+        "kelly_pct": 0.0
+      },
+      {
+        "pick": "X",
+        "prob_fb": 24.0,
+        "cuota_aposta": 4.0,
+        "ev_pct": -4.0000000000000036,
+        "edge_pct": -1.0000000000000009,
+        "kelly_pct": 0.0
+      },
+      {
+        "pick": "2",
+        "prob_fb": 18.0,
+        "cuota_aposta": 4.2,
+        "ev_pct": -24.4,
+        "edge_pct": -5.809523809523808,
+        "kelly_pct": 0.0
+      }
+    ],
+    "best": {
+      "pick": "1",
+      "prob_fb": 57.99999999999999,
+      "cuota_aposta": 1.72,
+      "ev_pct": -0.24000000000000687,
+      "edge_pct": -0.13953488372093759,
+      "kelly_pct": 0.0
+    }
+  }
+]
