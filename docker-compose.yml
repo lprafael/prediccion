@@ -44,6 +44,10 @@ services:
       ODDS_CACHE_MIN: ${ODDS_CACHE_MIN:-1440}
       ODDS_API_MARKETS: ${ODDS_API_MARKETS:-h2h}
       APOSTA_LIGAS: ${APOSTA_LIGAS:-}
+      # Modo simulacion del motor (saldo ficticio, liquidado con resultados reales)
+      SIM_BANKROLL: ${SIM_BANKROLL:-500000}
+      SIM_HORA: ${SIM_HORA:-9}
+      SIM_ACTIVA: ${SIM_ACTIVA:-1}
       POLIVERSO_API_KEY: ${POLIVERSO_API_KEY:-}
       PYTHONUNBUFFERED: 1
     ports:

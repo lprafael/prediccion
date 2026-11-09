@@ -172,6 +172,7 @@ def construir_selecciones(fair: List[Dict[str, Any]], eventos: Optional[List[Dic
                     "cuota_justa": round((1.0 - push) / p, 3) if p > 0 else None,
                     "ev_pct": round(ev * 100, 2), "fuente_prob": fuente,
                     "referencia": fb.get("metodo"), "goles_esperados": probs["_lambdas"],
+                    "ref_home": fb.get("home"), "ref_away": fb.get("away"),
                 })
     return selecciones
 

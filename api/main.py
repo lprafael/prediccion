@@ -14,7 +14,7 @@ import os
 from model.database import init_db
 
 # ─── Routers ───────────────────────────────────────────────────────────────────
-from api.routers import torneos, partidos, simulacion, apuestas, snapshots, calibracion, scraper, forebet_cruce, cupones
+from api.routers import torneos, partidos, simulacion, apuestas, snapshots, calibracion, scraper, forebet_cruce, cupones, simulacion_apuestas
 from api.ws_live import router as ws_router
 
 
@@ -54,6 +54,13 @@ async def lifespan(app: FastAPI):
                 print(f"[Cruce] Actualizado: {res.get('summary', {})}")
             except Exception as e:
                 print(f"[Cruce] Error en actualizacion automatica: {e}")
+            try:
+                from model.simulacion_apuestas import tick
+                sim = await run_in_threadpool(tick)
+                if sim.get("liquidadas") or sim.get("registradas"):
+                    print(f"[Simulacion] {sim}")
+            except Exception as e:
+                print(f"[Simulacion] Error: {e}")
             await asyncio.sleep(intervalo * 60)
 
     tarea_cruce = asyncio.create_task(_actualizador_cruce())
@@ -181,6 +188,7 @@ app.include_router(calibracion.router, prefix="/api", tags=["Calibración ML"])
 app.include_router(scraper.router,     prefix="/api", tags=["Scraper Aposta.la"])
 app.include_router(forebet_cruce.router, prefix="/api", tags=["Value Bets Forebet"])
 app.include_router(cupones.router,     prefix="/api", tags=["Cupones Aposta.la"])
+app.include_router(simulacion_apuestas.router, prefix="/api", tags=["Simulacion de apuestas"])
 
 
 # ─── WebSocket ─────────────────────────────────────────────────────────────────

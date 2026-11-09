@@ -199,5 +199,23 @@ def importar_cupones_aposta(cupones: list) -> Any:
     return _call("POST", "/api/cupones/importar", body={"cupones": cupones})
 
 
+@mcp.tool()
+def simulacion_apuestas(detalle: bool = False, limite: int = 20) -> Any:
+    """Modo simulacion del motor: saldo simulado (inicia en 500.000 Gs), ROI, ganadas/perdidas
+    y, con detalle=True, las ultimas apuestas registradas con sus patas y resultados."""
+    out = {"estado": _call("GET", "/api/simulacion-apuestas/estado")}
+    if detalle:
+        out["apuestas"] = _call("GET", "/api/simulacion-apuestas", params={"limite": limite})
+    return out
+
+
+@mcp.tool()
+def apuestas_del_dia(bankroll: float = 500000.0, horas_max: float = 30.0) -> Any:
+    """Apuestas recomendadas para las proximas horas con montos para el saldo indicado
+    (sencillas y combinadas seguras con valor en Aposta.la)."""
+    return _call("GET", "/api/forebet-cruce/combinadas",
+                 params={"bankroll": bankroll, "horas_max": horas_max})
+
+
 if __name__ == "__main__":
     mcp.run()

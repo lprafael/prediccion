@@ -91,3 +91,15 @@ def test_metricas_cupones():
     assert m["total"]["beneficio"] == 1300 + 300 - 2500
     assert m["por_selecciones"]["9+"]["ganadas"] == 0
     assert m["cobros_anticipados"] == {"n": 1, "apostado": 1000, "recuperado": 300}
+
+
+@pytest.mark.parametrize("codigo,gh,ga,esperado", [
+    ("1X2:1", 2, 1, "gana"), ("1X2:X", 1, 1, "gana"), ("1X2:2", 2, 1, "pierde"),
+    ("DC:1X", 1, 1, "gana"), ("DC:X2", 2, 0, "pierde"), ("DC:12", 0, 0, "pierde"),
+    ("DNB:1", 0, 0, "devuelve"), ("DNB:2", 0, 1, "gana"), ("DNB:1", 0, 1, "pierde"),
+    ("OU 2.5:over", 2, 1, "gana"), ("OU 2.5:under", 2, 1, "pierde"), ("OU 3.5:under", 1, 1, "gana"),
+    ("OU 2:over", 1, 1, "devuelve"), ("BTTS:si", 1, 1, "gana"), ("BTTS:no", 1, 0, "gana"),
+])
+def test_resultado_pata(codigo, gh, ga, esperado):
+    from model.simulacion_apuestas import resultado_pata
+    assert resultado_pata(codigo, gh, ga) == esperado
