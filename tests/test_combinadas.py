@@ -76,3 +76,18 @@ def test_generar_combinadas_filtra_ev_negativo_y_mismo_partido():
         assert 3 not in ids and 4 not in ids
         assert c["ev_pct"] > 0
         assert 0 < c["monto_sugerido"] <= 300_000  # tope 3 %
+
+
+def test_metricas_cupones():
+    from model.cupones import metricas
+    cup = [
+        {"estado": "ganada", "monto": 1000, "pago": 1300, "cuota": 1.3, "n_selecciones": 1, "fecha": "2026-11-01T10:00"},
+        {"estado": "perdida", "monto": 500, "pago": 0, "cuota": 12.0, "n_selecciones": 9, "fecha": "2026-11-01T11:00"},
+        {"estado": "cobro_anticipado", "monto": 1000, "pago": 300, "cuota": 1.5, "n_selecciones": 1, "fecha": "2026-11-02T10:00"},
+        {"estado": "abierta", "monto": 100, "pago": 0, "cuota": 2.0, "n_selecciones": 2, "fecha": "2026-11-03T10:00"},
+    ]
+    m = metricas(cup)
+    assert m["total"]["n"] == 3 and m["abiertas"] == 1
+    assert m["total"]["beneficio"] == 1300 + 300 - 2500
+    assert m["por_selecciones"]["9+"]["ganadas"] == 0
+    assert m["cobros_anticipados"] == {"n": 1, "apostado": 1000, "recuperado": 300}

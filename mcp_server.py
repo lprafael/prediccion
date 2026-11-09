@@ -184,5 +184,20 @@ def combinadas_seguras(
     return _call("GET", "/api/forebet-cruce/combinadas", params=params)
 
 
+@mcp.tool()
+def resumen_cupones_aposta(desde: Optional[str] = None) -> Any:
+    """Rendimiento de los cupones reales apostados en Aposta.la (importados del historial):
+    ROI y acierto por numero de selecciones, tramo de cuota y dia, cobros anticipados y alertas."""
+    return _call("GET", "/api/cupones/resumen", params={"desde": desde} if desde else None)
+
+
+@mcp.tool()
+def importar_cupones_aposta(cupones: list) -> Any:
+    """Guarda/actualiza cupones de Aposta.la (lista de objetos con cupon_id, fecha ISO, tipo,
+    estado [ganada|perdida|cobro_anticipado|abierta|anulada], cuota, monto, pago, gratuita,
+    selecciones [{mercado, seleccion, partido}])."""
+    return _call("POST", "/api/cupones/importar", body={"cupones": cupones})
+
+
 if __name__ == "__main__":
     mcp.run()

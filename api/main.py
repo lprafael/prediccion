@@ -14,7 +14,7 @@ import os
 from model.database import init_db
 
 # ─── Routers ───────────────────────────────────────────────────────────────────
-from api.routers import torneos, partidos, simulacion, apuestas, snapshots, calibracion, scraper, forebet_cruce
+from api.routers import torneos, partidos, simulacion, apuestas, snapshots, calibracion, scraper, forebet_cruce, cupones
 from api.ws_live import router as ws_router
 
 
@@ -180,6 +180,7 @@ app.include_router(snapshots.router,   prefix="/api", tags=["Snapshots & Hitos"]
 app.include_router(calibracion.router, prefix="/api", tags=["Calibración ML"])
 app.include_router(scraper.router,     prefix="/api", tags=["Scraper Aposta.la"])
 app.include_router(forebet_cruce.router, prefix="/api", tags=["Value Bets Forebet"])
+app.include_router(cupones.router,     prefix="/api", tags=["Cupones Aposta.la"])
 
 
 # ─── WebSocket ─────────────────────────────────────────────────────────────────
