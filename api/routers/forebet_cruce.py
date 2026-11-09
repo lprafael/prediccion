@@ -127,3 +127,24 @@ async def get_cruce_status():
         "fuentes": estado_fuentes(),
     }
 
+
+
+@router.get("/combinadas", response_model=Dict[str, Any])
+async def get_combinadas(
+    bankroll: float = Query(0.0, ge=0, description="Bankroll para calcular montos (1/4 Kelly, tope 3%)"),
+    prob_min_pata: float = Query(0.70, ge=0.5, le=0.99, description="Probabilidad minima de no perder cada pata"),
+    max_patas: int = Query(4, ge=2, le=6),
+    cuota_min: float = Query(1.50, ge=1.01),
+    cuota_max: float = Query(4.0, ge=1.1),
+    horas_max: float = Query(72.0, ge=1, le=24 * 14, description="Solo partidos que empiezan en las proximas N horas"),
+    refrescar: bool = Query(False, description="Forzar nueva descarga de probabilidades (gasta creditos de The Odds API)"),
+):
+    """Selecciones seguras con valor (+EV) en Aposta.la y las mejores combinadas entre ellas."""
+    from model.combinadas import recomendar
+    try:
+        return await run_in_threadpool(
+            lambda: recomendar(bankroll=bankroll, refrescar=refrescar, prob_min_pata=prob_min_pata,
+                               max_patas=max_patas, cuota_min=cuota_min, cuota_max=cuota_max,
+                               horas_max=horas_max))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Error generando combinadas: {e}")

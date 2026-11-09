@@ -22,19 +22,73 @@ _CACHE: Dict[str, Any] = {
 CACHE_TTL_SECONDS = 900  # 15 minutos de validez
 
 
+def _ascii(text: str) -> str:
+    return unicodedata.normalize('NFKD', (text or "").lower()).encode('ASCII', 'ignore').decode('utf-8')
+
+
+# Palabras que no identifican al equipo (siglas societarias, articulos).
+# OJO: NO incluir "united", "city", "real", "atletico", "inter"... porque
+# distinguen equipos (Manchester United vs Manchester City).
+_STOPWORDS = {"fc", "cf", "sc", "ac", "cd", "fk", "sk", "csd", "afc", "ssc", "sv", "bk",
+              "if", "club", "de", "del", "la", "el", "the", "and", "y", "1", "rj", "sp",
+              "mg", "rs", "pr", "go", "ba", "ce", "pe", "sa", "s"}
+# Marcas de equipos juveniles / reservas / filiales: deben coincidir en ambos lados.
+_MARCAS_FILIAL = {"u17", "u18", "u19", "u20", "u21", "u23", "sub", "ii", "b", "reserves",
+                  "reserva", "reservas", "castilla", "atletic", "youth", "f", "w", "women"}
+_TOKEN_ALIAS = {"utd": "united", "man": "manchester", "munchen": "munich", "muenchen": "munich",
+                "koeln": "koln", "cologne": "koln", "lisboa": "lisbon", "milano": "milan",
+                "athletico": "athletico", "saint": "st", "sankt": "st", "wanderers": "wanderers"}
+
+
+def _tokens(name: str) -> List[str]:
+    t = re.sub(r"[^a-z0-9]+", " ", _ascii(_alias(name)))
+    return [_TOKEN_ALIAS.get(w, w) for w in t.split()]
+
+
 def normalize_team_name(text: str) -> str:
-    """Normaliza nombres de equipos removiendo tildes, signos y palabras comunes de club."""
+    """Nombre normalizado (sin tildes, signos ni siglas de club), conservando las
+    palabras que distinguen equipos (united, city, real, atletico...)."""
     if not text:
         return ""
-    text = text.lower()
-    text = unicodedata.normalize('NFKD', text).encode('ASCII', 'ignore').decode('utf-8')
-    # Quitar palabras genéricas que causan discordancia
-    text = re.sub(r'\b(fc|cf|sc|ac|cd|fk|sk|ca|csd|de|la|el|club|balompie|sporting|united|city|real|atletico|deportivo)\b', '', text)
-    text = re.sub(r'[^a-z0-9]', '', text)
-    return text.strip()
+    return "".join(w for w in _tokens(text) if w not in _STOPWORDS)
 
 
-import difflib
+def _token_eq(a: str, b: str) -> bool:
+    if a == b:
+        return True
+    if min(len(a), len(b)) >= 5 and difflib.SequenceMatcher(None, a, b).ratio() >= 0.85:
+        return True  # erratas / transliteraciones (koln-koeln, ...)
+    return False
+
+
+def same_team(n1: str, n2: str) -> bool:
+    """True si dos nombres corresponden al mismo equipo.
+
+    Regla: las marcas de filial/juvenil/femenino deben coincidir, y todas las
+    palabras significativas del nombre mas corto deben estar en el mas largo
+    ("Atletico Mineiro" ~ "Atletico Mineiro-MG", pero "Inter" != "Internacional"
+    y "Manchester United" != "Manchester City").
+    """
+    t1, t2 = _tokens(n1), _tokens(n2)
+    m1 = {w for w in t1 if w in _MARCAS_FILIAL} | ({"f"} if _es_femenino(n1) else set())
+    m2 = {w for w in t2 if w in _MARCAS_FILIAL} | ({"f"} if _es_femenino(n2) else set())
+    m1 = {"f" if w in ("w", "women") else w for w in m1}
+    m2 = {"f" if w in ("w", "women") else w for w in m2}
+    if m1 != m2:
+        return False
+    s1 = [w for w in t1 if w not in _STOPWORDS and w not in _MARCAS_FILIAL]
+    s2 = [w for w in t2 if w not in _STOPWORDS and w not in _MARCAS_FILIAL]
+    if not s1 or not s2:
+        return False
+    if "".join(s1) == "".join(s2):
+        return True
+    corto, largo = (s1, s2) if len(s1) <= len(s2) else (s2, s1)
+    if not all(any(_token_eq(w, x) for x in largo) for w in corto):
+        return False
+    # Si el nombre corto es una sola palabra generica (ej. "Real", "Atletico") no alcanza
+    return len("".join(corto)) >= 4 and not (len(corto) == 1 and corto[0] in
+                                              {"real", "atletico", "united", "city", "sporting",
+                                               "deportivo", "nacional", "inter", "racing"} and len(largo) > 1)
 
 TEAM_ALIASES = {
     "napoles": "napoli", "bayern munich": "bayern munchen", "bayern múnich": "bayern munchen",
@@ -90,88 +144,22 @@ def _es_femenino(name: str) -> bool:
 
 def teams_match(h1: str, a1: str, h2: str, a2: str) -> bool:
     """Compara si dos pares de nombres de equipos corresponden al mismo partido."""
-    if _es_femenino(h1) != _es_femenino(h2) or _es_femenino(a1) != _es_femenino(a2):
-        return False
-    h1, a1, h2, a2 = _alias(h1), _alias(a1), _alias(h2), _alias(a2)
-    # Evita confundir Real Madrid / Atletico Madrid, Real Sociedad / Sociedad, etc.
-    for x, y in ((h1, h2), (a1, a2)):
-        lx, ly = x.lower(), y.lower()
-        if ("real madrid" in lx) != ("real madrid" in ly) or ("atletico madrid" in lx) != ("atletico madrid" in ly):
-            return False
-    nh1 = normalize_team_name(h1)
-    na1 = normalize_team_name(a1)
-    nh2 = normalize_team_name(h2)
-    na2 = normalize_team_name(a2)
-
-    if not nh1 or not na1 or not nh2 or not na2:
-        return False
-
-    home_match = (nh1 == nh2) or (nh1 in nh2) or (nh2 in nh1) or (difflib.SequenceMatcher(None, nh1, nh2).ratio() >= 0.78)
-    away_match = (na1 == na2) or (na1 in na2) or (na2 in na1) or (difflib.SequenceMatcher(None, na1, na2).ratio() >= 0.78)
-
-    return home_match and away_match
+    return same_team(h1, h2) and same_team(a1, a2)
 
 
 def fetch_aposta_matches() -> List[Dict[str, Any]]:
-    """Consulta los partidos y cuotas activas de fútbol desde la API de Kambi utilizada por Aposta.la."""
-    url = "https://us.offering-api.kambicdn.com/offering/v2018/betplayintpy/listView/football.json?lang=es_PY&market=PY&client_id=200"
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
-        "Accept": "application/json",
-        "Referer": "https://aposta.la/"
-    }
-    try:
-        resp = requests.get(url, headers=headers, timeout=12)
-        if resp.status_code != 200:
-            print(f"[Aposta.la API] Error HTTP {resp.status_code}")
-            return []
-        data = resp.json()
-    except Exception as e:
-        print(f"[Aposta.la API] Error al conectar: {e}")
-        return []
-
-    events = data.get("events", [])
-    aposta_matches = []
-
-    for e in events:
-        ev = e.get("event", {})
-        event_id = ev.get("id")
-        home = ev.get("homeName", "").strip()
-        away = ev.get("awayName", "").strip()
-        group = ev.get("group", "")
-        start_time = ev.get("start", "")
-        state = ev.get("state", "")
-
-        odds_1x2 = {}
-        for bo in e.get("betOffers", []):
-            crit = bo.get("criterion", {})
-            bo_type = bo.get("betOfferType", {})
-            if bo_type.get("name") in ["Partido", "Match"] or crit.get("englishLabel") == "Full Time":
-                for oc in bo.get("outcomes", []):
-                    label = oc.get("label")
-                    raw_odds = oc.get("odds")
-                    status = oc.get("status")
-                    if raw_odds and status != "SUSPENDED":
-                        odds_1x2[label] = round(raw_odds / 1000.0, 2)
-
-        texto = f"{group} {home} {away}".lower()
-        es_virtual = bool(re.search(r"cyber|e-?sports?|esoccer|virtual|simulad|\d+x\d+ ?min", texto)) \
-            or bool(re.search(r"\([a-z0-9_]*[a-z][a-z0-9_]*[0-9_][a-z0-9_]*\)|\((?=[a-z0-9_]*[a-z])[a-z0-9_]{4,}\)", f"{home} {away}"))
-        if es_virtual or state not in ("", "NOT_STARTED"):
-            continue
-
-        if home and away and odds_1x2:
-            aposta_matches.append({
-                "id": event_id,
-                "home": home,
-                "away": away,
-                "league": group,
-                "start": start_time,
-                "state": state,
-                "odds": odds_1x2
-            })
-
-    return aposta_matches
+    """Partidos pre-partido de Aposta.la (Kambi) con su 1X2: ligas configuradas
+    (APOSTA_LIGAS) + listado general de proximos partidos."""
+    from model.aposta_feed import fetch_eventos_cache, _get, _evento_basico
+    eventos = list(fetch_eventos_cache())
+    vistos = {e["id"] for e in eventos}
+    general = _get("/listView/football.json") or {}
+    for e in general.get("events", []):
+        ev = _evento_basico(e, "general")
+        if ev and ev["id"] not in vistos:
+            vistos.add(ev["id"])
+            eventos.append(ev)
+    return [e for e in eventos if e["odds"]]
 
 
 def execute_forebet_aposta_cross(force_refresh: bool = False) -> Dict[str, Any]:

@@ -165,5 +165,24 @@ def actualizar_cruce() -> Any:
     return _call("POST", "/api/forebet-cruce/escanear")
 
 
+@mcp.tool()
+def combinadas_seguras(
+    bankroll: float = 0.0,
+    prob_min_pata: float = 0.70,
+    max_patas: int = 4,
+    cuota_min: float = 1.50,
+    cuota_max: float = 4.0,
+    horas_max: float = 72.0,
+    refrescar: bool = False,
+) -> Any:
+    """Selecciones de alta probabilidad con valor (+EV) en Aposta.la (1X2, doble oportunidad,
+    empate no apuesta, total de goles, ambos marcan) y las mejores combinadas entre partidos
+    distintos, con probabilidad real de ganar, EV y monto sugerido (1/4 Kelly, tope 3%)."""
+    params = {"bankroll": bankroll, "prob_min_pata": prob_min_pata, "max_patas": max_patas,
+              "cuota_min": cuota_min, "cuota_max": cuota_max, "horas_max": horas_max,
+              "refrescar": refrescar}
+    return _call("GET", "/api/forebet-cruce/combinadas", params=params)
+
+
 if __name__ == "__main__":
     mcp.run()

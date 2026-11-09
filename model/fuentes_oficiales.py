@@ -86,8 +86,21 @@ def _probs_from_event(ev: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     sharp_name = None
     consensus: List[List[float]] = []
 
+    totales: Dict[float, List[float]] = {}
+    totales_sharp: Dict[float, float] = {}
     for bk in ev.get("bookmakers", []):
         for mk in bk.get("markets", []):
+            if mk.get("key") == "totals":
+                ov = next((o for o in mk.get("outcomes", []) if o.get("name") == "Over"), None)
+                un = next((o for o in mk.get("outcomes", []) if o.get("name") == "Under"), None)
+                if ov and un and ov.get("point") == un.get("point"):
+                    pr = _devig([ov.get("price"), un.get("price")])
+                    if pr:
+                        linea = float(ov["point"])
+                        totales.setdefault(linea, []).append(pr[0])
+                        if bk.get("key") in SHARP_BOOKS and linea not in totales_sharp:
+                            totales_sharp[linea] = pr[0]
+                continue
             if mk.get("key") != "h2h":
                 continue
             price = {o.get("name"): o.get("price") for o in mk.get("outcomes", [])}
@@ -111,14 +124,25 @@ def _probs_from_event(ev: Dict[str, Any]) -> Optional[Dict[str, Any]]:
 
     p1, px, p2 = (round(p * 100.0, 1) for p in probs)
     pred = max((("1", p1), ("X", px), ("2", p2)), key=lambda t: t[1])[0]
-    return {"p1": p1, "px": px, "p2": p2, "pred": pred, "metodo": metodo, "n_casas": n}
+    # P(mas de la linea) sin margen: casa afilada o mediana del consenso (>=3 casas)
+    p_over = {l: round(totales_sharp.get(l, statistics.median(v)), 4)
+              for l, v in totales.items() if l in totales_sharp or len(v) >= 3}
+    return {"p1": p1, "px": px, "p2": p2, "pred": pred, "metodo": metodo, "n_casas": n,
+            "p_over": p_over or None}
 
 
 def fetch_odds_api_probabilities() -> List[Dict[str, Any]]:
     key = os.getenv("ODDS_API_KEY")
     if not key:
         return []
+    # Cache para no gastar creditos si varias funciones piden datos a la vez
+    cache_s = float(os.getenv("ODDS_CACHE_MIN", "20")) * 60
+    prev = _last_run.get("odds_api", {})
+    if prev.get("datos") and time.time() - prev.get("timestamp", 0) < cache_s:
+        return prev["datos"]
     sports = _env_list("ODDS_API_SPORTS", DEFAULT_ODDS_SPORTS)
+    # "h2h" = 1X2 (1 credito por liga). "h2h,totals" agrega total de goles (2 creditos por liga).
+    markets = os.getenv("ODDS_API_MARKETS", "h2h")
     regions = os.getenv("ODDS_API_REGIONS", "eu")
     out: List[Dict[str, Any]] = []
     info: Dict[str, Any] = {"ligas": {}, "creditos_restantes": None, "errores": []}
@@ -127,7 +151,7 @@ def fetch_odds_api_probabilities() -> List[Dict[str, Any]]:
         try:
             r = requests.get(
                 f"{ODDS_API_URL}/sports/{sport}/odds",
-                params={"apiKey": key, "regions": regions, "markets": "h2h",
+                params={"apiKey": key, "regions": regions, "markets": markets,
                         "oddsFormat": "decimal", "dateFormat": "iso"},
                 timeout=20,
             )
@@ -159,6 +183,8 @@ def fetch_odds_api_probabilities() -> List[Dict[str, Any]]:
         info["ligas"][sport] = n
 
     info["timestamp"] = time.time()
+    if out:
+        info["datos"] = out
     _last_run["odds_api"] = info
     return out
 
