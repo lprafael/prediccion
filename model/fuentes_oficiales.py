@@ -27,19 +27,31 @@ import requests
 ODDS_API_URL = "https://api.the-odds-api.com/v4"
 API_FOOTBALL_URL = "https://v3.football.api-sports.io"
 
-# Ligas consultadas en The Odds API (1 credito por liga por consulta).
+# Ligas candidatas por prioridad. Cada dia solo se pagan (1 credito c/u, maximo
+# ODDS_API_MAX_LIGAS) las que tienen partidos en las proximas ODDS_API_VENTANA_H horas;
+# la consulta de que partidos hay (/events) es gratis.
 DEFAULT_ODDS_SPORTS = ",".join([
+    "soccer_uefa_nations_league",
+    "soccer_uefa_champs_league",
+    "soccer_uefa_europa_league",
+    "soccer_uefa_europa_conference_league",
     "soccer_epl",
     "soccer_spain_la_liga",
     "soccer_italy_serie_a",
     "soccer_germany_bundesliga",
     "soccer_france_ligue_one",
-    "soccer_portugal_primeira_liga",
-    "soccer_uefa_champs_league",
-    "soccer_uefa_europa_league",
+    "soccer_conmebol_copa_libertadores",
+    "soccer_conmebol_copa_sudamericana",
     "soccer_brazil_campeonato",
     "soccer_argentina_primera_division",
-    "soccer_conmebol_copa_libertadores",
+    "soccer_portugal_primeira_liga",
+    "soccer_netherlands_eredivisie",
+    "soccer_efl_champ",
+    "soccer_usa_mls",
+    "soccer_mexico_ligamx",
+    "soccer_spl",
+    "soccer_belgium_first_div",
+    "soccer_turkey_super_league",
 ])
 
 SHARP_BOOKS = ("pinnacle", "betfair_ex_eu", "matchbook")
@@ -131,28 +143,102 @@ def _probs_from_event(ev: Dict[str, Any]) -> Optional[Dict[str, Any]]:
             "p_over": p_over or None}
 
 
-def fetch_odds_api_probabilities() -> List[Dict[str, Any]]:
+def _cache_db(datos: Optional[List[Dict[str, Any]]] = None, info: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
+    """Lee (sin argumentos) o guarda la ultima descarga de The Odds API en PostgreSQL,
+    para que un reinicio del servidor no vuelva a gastar creditos."""
+    try:
+        import json
+        from model.database import get_connection
+        conn = get_connection()
+        try:
+            with conn:
+                with conn.cursor() as cur:
+                    cur.execute("""CREATE TABLE IF NOT EXISTS odds_api_cache (
+                        id INT PRIMARY KEY, ts DOUBLE PRECISION, datos JSONB, info JSONB)""")
+                    if datos is None:
+                        cur.execute("SELECT ts, datos, info FROM odds_api_cache WHERE id = 1")
+                        row = cur.fetchone()
+                        return dict(row) if row else None
+                    cur.execute("""INSERT INTO odds_api_cache (id, ts, datos, info) VALUES (1, %s, %s, %s)
+                                   ON CONFLICT (id) DO UPDATE SET ts = EXCLUDED.ts, datos = EXCLUDED.datos,
+                                   info = EXCLUDED.info""",
+                                (info.get("timestamp"), json.dumps(datos), json.dumps(info)))
+        finally:
+            conn.close()
+    except Exception as e:
+        print(f"[Odds API] Cache DB no disponible: {e}")
+    return None
+
+
+def _cache_vigente(ts: float) -> bool:
+    """La descarga vale hasta el siguiente refresco diario (ODDS_REFRESCO_HORA, hora de
+    Paraguay, por defecto la misma que la simulacion) y como maximo ODDS_CACHE_MIN."""
+    if time.time() - ts > float(os.getenv("ODDS_CACHE_MIN", "1440")) * 60:
+        return False
+    hoy = datetime.now(timezone(timedelta(hours=-3)))
+    corte = hoy.replace(hour=int(os.getenv("ODDS_REFRESCO_HORA", os.getenv("SIM_HORA", "9"))),
+                        minute=0, second=0, microsecond=0)
+    return not (hoy >= corte and ts < corte.timestamp())
+
+
+def _ligas_con_partidos(key: str, sports: List[str], horas: float) -> Dict[str, int]:
+    """Partidos por liga en las proximas `horas` (endpoint /events: no gasta creditos)."""
+    ahora = datetime.now(timezone.utc)
+    desde = ahora.strftime("%Y-%m-%dT%H:%M:%SZ")
+    hasta = (ahora + timedelta(hours=horas)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    res: Dict[str, int] = {}
+    for sport in sports:
+        try:
+            r = requests.get(f"{ODDS_API_URL}/sports/{sport}/events",
+                             params={"apiKey": key, "commenceTimeFrom": desde, "commenceTimeTo": hasta},
+                             timeout=20)
+            if r.status_code == 200 and r.json():
+                res[sport] = len(r.json())
+        except Exception:
+            continue
+    return res
+
+
+def fetch_odds_api_probabilities(forzar: bool = False) -> List[Dict[str, Any]]:
     key = os.getenv("ODDS_API_KEY")
     if not key:
         return []
-    # Cache para no gastar creditos si varias funciones piden datos a la vez
-    cache_s = float(os.getenv("ODDS_CACHE_MIN", "20")) * 60
     prev = _last_run.get("odds_api", {})
-    if prev.get("datos") and time.time() - prev.get("timestamp", 0) < cache_s:
-        return prev["datos"]
+    if not forzar:
+        if prev.get("datos") and _cache_vigente(prev.get("timestamp", 0)):
+            return prev["datos"]
+        guardado = _cache_db()
+        if guardado and guardado.get("datos") and _cache_vigente(guardado.get("ts") or 0):
+            info = dict(guardado.get("info") or {})
+            info.update(datos=guardado["datos"], timestamp=guardado["ts"], origen="cache_db")
+            _last_run["odds_api"] = info
+            return guardado["datos"]
+
     sports = _env_list("ODDS_API_SPORTS", DEFAULT_ODDS_SPORTS)
     # "h2h" = 1X2 (1 credito por liga). "h2h,totals" agrega total de goles (2 creditos por liga).
     markets = os.getenv("ODDS_API_MARKETS", "h2h")
     regions = os.getenv("ODDS_API_REGIONS", "eu")
+    ventana = float(os.getenv("ODDS_API_VENTANA_H", "48"))
+    max_ligas = int(os.getenv("ODDS_API_MAX_LIGAS", "6"))
+    min_creditos = int(os.getenv("ODDS_API_MIN_CREDITOS", "15"))
     out: List[Dict[str, Any]] = []
     info: Dict[str, Any] = {"ligas": {}, "creditos_restantes": None, "errores": []}
 
-    for sport in sports:
+    con_partidos = _ligas_con_partidos(key, sports, ventana)
+    elegidas = [s for s in sports if s in con_partidos][:max_ligas]
+    info["ligas_con_partidos"] = con_partidos
+
+    hasta = (datetime.now(timezone.utc) + timedelta(hours=ventana)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    for sport in elegidas:
+        restantes = info["creditos_restantes"]
+        if restantes is not None and int(float(restantes)) < min_creditos:
+            info["errores"].append(f"{sport}: omitida, quedan {restantes} creditos (minimo {min_creditos})")
+            continue
         try:
             r = requests.get(
                 f"{ODDS_API_URL}/sports/{sport}/odds",
                 params={"apiKey": key, "regions": regions, "markets": markets,
-                        "oddsFormat": "decimal", "dateFormat": "iso"},
+                        "oddsFormat": "decimal", "dateFormat": "iso", "commenceTimeTo": hasta},
                 timeout=20,
             )
             info["creditos_restantes"] = r.headers.get("x-requests-remaining", info["creditos_restantes"])
@@ -185,6 +271,11 @@ def fetch_odds_api_probabilities() -> List[Dict[str, Any]]:
     info["timestamp"] = time.time()
     if out:
         info["datos"] = out
+        _cache_db(out, {k: v for k, v in info.items() if k != "datos"})
+    elif prev.get("datos"):
+        # Sin datos nuevos (sin partidos o sin creditos): conservar los anteriores
+        info["datos"] = prev["datos"]
+        out = prev["datos"]
     _last_run["odds_api"] = info
     return out
 

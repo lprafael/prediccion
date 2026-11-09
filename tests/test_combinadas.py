@@ -103,3 +103,26 @@ def test_metricas_cupones():
 def test_resultado_pata(codigo, gh, ga, esperado):
     from model.simulacion_apuestas import resultado_pata
     assert resultado_pata(codigo, gh, ga) == esperado
+
+
+@pytest.mark.parametrize("a,b", [
+    ("Spain", "España"), ("Republic of Ireland", "Irlanda"), ("Turkey", "Turquía"),
+    ("Czech Republic", "República Checa"), ("Bosnia and Herzegovina", "Bosnia y Herzegovina"),
+])
+def test_selecciones_nacionales(a, b):
+    assert same_team(a, b)
+
+
+def test_cache_vigente_refresco_diario(monkeypatch):
+    import time as _t
+    from datetime import datetime, timedelta, timezone
+    from model import fuentes_oficiales as fo
+    monkeypatch.setenv("ODDS_CACHE_MIN", "1440")
+    monkeypatch.setenv("ODDS_REFRESCO_HORA", "9")
+    py = timezone(timedelta(hours=-3))
+    ahora = datetime.now(py)
+    corte = ahora.replace(hour=9, minute=0, second=0, microsecond=0)
+    assert not fo._cache_vigente(_t.time() - 25 * 3600)  # mas viejo que ODDS_CACHE_MIN
+    if ahora >= corte + timedelta(minutes=1):
+        assert not fo._cache_vigente(corte.timestamp() - 60)   # descargado antes del corte de hoy
+        assert fo._cache_vigente(corte.timestamp() + 30)       # descargado despues del corte

@@ -106,6 +106,26 @@ TEAM_ALIASES = {
     "afc bournemouth": "bournemouth", "estrella roja": "crvena zvezda",
 }
 
+# Selecciones nacionales: Aposta.la (es_PY) -> nombres en ingles de The Odds API / ESPN
+TEAM_ALIASES.update({
+    "espana": "spain", "alemania": "germany", "francia": "france", "inglaterra": "england",
+    "italia": "italy", "paises bajos": "netherlands", "holanda": "netherlands", "belgica": "belgium",
+    "irlanda": "republic of ireland", "irlanda del norte": "northern ireland", "escocia": "scotland",
+    "gales": "wales", "suiza": "switzerland", "croacia": "croatia", "dinamarca": "denmark",
+    "suecia": "sweden", "noruega": "norway", "polonia": "poland", "republica checa": "czech republic",
+    "chequia": "czech republic", "eslovaquia": "slovakia", "eslovenia": "slovenia", "hungria": "hungary",
+    "rumania": "romania", "rumanía": "romania", "grecia": "greece", "turquia": "turkey", "ucrania": "ukraine",
+    "rusia": "russia", "bosnia y herzegovina": "bosnia and herzegovina", "bosnia-herzegovina": "bosnia and herzegovina",
+    "macedonia del norte": "north macedonia", "azerbaiyan": "azerbaijan", "kazajistan": "kazakhstan",
+    "islandia": "iceland", "finlandia": "finland", "letonia": "latvia", "lituania": "lithuania",
+    "bielorrusia": "belarus", "moldavia": "moldova", "chipre": "cyprus", "luxemburgo": "luxembourg",
+    "islas feroe": "faroe islands", "feroe": "faroe islands", "armenia": "armenia", "georgia": "georgia",
+    "brasil": "brazil", "estados unidos": "usa", "eeuu": "usa", "mexico": "mexico", "japon": "japan",
+    "corea del sur": "south korea", "marruecos": "morocco", "egipto": "egypt", "sudafrica": "south africa",
+    "arabia saudita": "saudi arabia", "arabia saudi": "saudi arabia", "nueva zelanda": "new zealand",
+    "costa de marfil": "ivory coast", "camerun": "cameroon", "argelia": "algeria", "tunez": "tunisia",
+})
+
 
 def _alias(name: str) -> str:
     key = (name or "").strip().lower()
